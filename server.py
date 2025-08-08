@@ -9,6 +9,8 @@ from werkzeug.utils import secure_filename
 import librosa
 import pretty_midi
 import numpy as np
+import subprocess
+import sys
 
 app = Flask(__name__)
 CORS(app)
@@ -25,134 +27,13 @@ def allowed_file(filename):
            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 def convert_audio_to_midi(audio_path, settings):
-    """
-    Convert audio to MIDI using the existing script logic
-    """
-    # Extract settings
-    PITCH_BEND_RANGE = settings.get('pitchBendRange', 2)
-    DRIFT_THRESHOLD = settings.get('driftThreshold', 0.5)
-    QUANTIZATION_STEP = settings.get('quantizationStep', 0.5)
-
-    # Load audio
-    y, sr = librosa.load(audio_path, sr=None)
-
-    # Pitch tracking (monophonic)
-    f0, voiced_flag, _ = librosa.pyin(
-        y,
-        fmin=librosa.note_to_hz('C2'),
-        fmax=librosa.note_to_hz('C7'),
-        sr=sr,
-        frame_length=2048,
-        hop_length=256
-    )
-
-    times = librosa.times_like(f0, sr=sr, hop_length=256)
-
-    # Init MIDI
-    midi = pretty_midi.PrettyMIDI()
-    instrument = pretty_midi.Instrument(program=0)
-
-    note_start = None
-    note_pitch_ref = None
-    note_index_start = None
-
-    def quantize_pitch(pitch):
-        return round(pitch / QUANTIZATION_STEP) * QUANTIZATION_STEP
-
-    for i in range(len(f0)):
-        if voiced_flag[i] and not np.isnan(f0[i]):
-            current_pitch = pretty_midi.hz_to_note_number(f0[i])
-            current_pitch = quantize_pitch(current_pitch)
-
-            if note_start is None:
-                # First note
-                note_start = times[i]
-                note_pitch_ref = current_pitch
-                note_index_start = i
-            else:
-                pitch_deviation = current_pitch - note_pitch_ref
-                if abs(pitch_deviation) > DRIFT_THRESHOLD:
-                    # Finish current note
-                    note_end = times[i]
-                    base_pitch = int(round(note_pitch_ref))
-                    note = pretty_midi.Note(
-                        velocity=100,
-                        pitch=base_pitch,
-                        start=note_start,
-                        end=note_end
-                    )
-                    instrument.notes.append(note)
-
-                    for j in range(note_index_start, i):
-                        if voiced_flag[j] and not np.isnan(f0[j]):
-                            raw_pitch = pretty_midi.hz_to_note_number(f0[j])
-                            quantized_pitch = quantize_pitch(raw_pitch)
-                            bend_semitones = quantized_pitch - base_pitch
-                            bend_value = int((bend_semitones / PITCH_BEND_RANGE) * 8192)
-                            bend_value = np.clip(bend_value, -8192, 8191)
-                            instrument.pitch_bends.append(
-                                pretty_midi.PitchBend(pitch=bend_value, time=times[j])
-                            )
-
-                    # Start new note
-                    note_start = times[i]
-                    note_pitch_ref = current_pitch
-                    note_index_start = i
-        else:
-            if note_start is not None:
-                # Finish last note due to silence
-                note_end = times[i]
-                base_pitch = int(round(note_pitch_ref))
-                note = pretty_midi.Note(
-                    velocity=100,
-                    pitch=base_pitch,
-                    start=note_start,
-                    end=note_end
-                )
-                instrument.notes.append(note)
-
-                for j in range(note_index_start, i):
-                    if voiced_flag[j] and not np.isnan(f0[j]):
-                        raw_pitch = pretty_midi.hz_to_note_number(f0[j])
-                        quantized_pitch = quantize_pitch(raw_pitch)
-                        bend_semitones = quantized_pitch - base_pitch
-                        bend_value = int((bend_semitones / PITCH_BEND_RANGE) * 8192)
-                        bend_value = np.clip(bend_value, -8192, 8191)
-                        instrument.pitch_bends.append(
-                            pretty_midi.PitchBend(pitch=bend_value, time=times[j])
-                        )
-
-            note_start = None
-            note_pitch_ref = None
-            note_index_start = None
-
-    # Handle last note
-    if note_start is not None and note_index_start is not None:
-        note_end = times[-1]
-        base_pitch = int(round(note_pitch_ref))
-        note = pretty_midi.Note(
-            velocity=100,
-            pitch=base_pitch,
-            start=note_start,
-            end=note_end
-        )
-        instrument.notes.append(note)
-
-        for j in range(note_index_start, len(f0)):
-            if voiced_flag[j] and not np.isnan(f0[j]):
-                raw_pitch = pretty_midi.hz_to_note_number(f0[j])
-                quantized_pitch = quantize_pitch(raw_pitch)
-                bend_semitones = quantized_pitch - base_pitch
-                bend_value = int((bend_semitones / PITCH_BEND_RANGE) * 8192)
-                bend_value = np.clip(bend_value, -8192, 8191)
-                instrument.pitch_bends.append(
-                    pretty_midi.PitchBend(pitch=bend_value, time=times[j])
-                )
-
-    # Add instrument to MIDI
-    midi.instruments.append(instrument)
-    
-    return midi
+    """Run the external microtonal engine to convert audio to MIDI."""
+    midi_path = audio_path + '_converted.mid'
+    script_path = os.path.join(os.path.dirname(__file__), 'script.py')
+    cmd = [sys.executable, script_path, audio_path, midi_path]
+    subprocess.run(cmd, check=True)
+    midi = pretty_midi.PrettyMIDI(midi_path)
+    return midi, midi_path
 
 @app.route('/api/convert', methods=['POST'])
 def convert_audio():
@@ -204,15 +85,10 @@ def convert_audio():
 
         try:
             print("Starting MIDI conversion...")
-            # Convert audio to MIDI
-            midi = convert_audio_to_midi(temp_path, settings)
-            
+            # Convert audio to MIDI using external script
+            midi, midi_path = convert_audio_to_midi(temp_path, settings)
+
             print("MIDI conversion completed successfully")
-            
-            # Save MIDI to temporary file
-            midi_path = temp_path + '_converted.mid'
-            print(f"Saving MIDI to: {midi_path}")
-            midi.write(midi_path)
             
             # Read MIDI file and convert to base64
             with open(midi_path, 'rb') as f:

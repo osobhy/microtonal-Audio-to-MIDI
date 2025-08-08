@@ -16,8 +16,8 @@ import SettingsPanel from './components/SettingsPanel';
 import './App.css';
 
 function App() {
-  const [audioFile, setAudioFile] = useState(null);
-  const [midiData, setMidiData] = useState(null);
+  const [audioFiles, setAudioFiles] = useState([]);
+  const [midiData, setMidiData] = useState([]);
   const [isConverting, setIsConverting] = useState(false);
   const [conversionProgress, setConversionProgress] = useState(0);
   const [error, setError] = useState(null);
@@ -28,54 +28,47 @@ function App() {
     quantizationStep: 0.5
   });
 
-  const handleFileUpload = (file) => {
-    setAudioFile(file);
-    setMidiData(null);
+  const handleFilesUpload = (files) => {
+    setAudioFiles(files);
+    setMidiData([]);
     setError(null);
   };
 
+  const handleRemoveFile = (index) => {
+    setAudioFiles(prev => prev.filter((_, i) => i !== index));
+  };
+
   const handleConvert = async () => {
-    if (!audioFile) return;
+    if (audioFiles.length === 0) return;
 
     setIsConverting(true);
     setConversionProgress(0);
     setError(null);
 
-    const formData = new FormData();
-    formData.append('audio', audioFile);
-    formData.append('settings', JSON.stringify(settings));
-
     try {
-      // Simulate progress updates
-      const progressInterval = setInterval(() => {
-        setConversionProgress(prev => {
-          if (prev >= 90) {
-            clearInterval(progressInterval);
-            return 90;
-          }
-          return prev + 10;
+      const results = [];
+      for (let i = 0; i < audioFiles.length; i++) {
+        const file = audioFiles[i];
+        const formData = new FormData();
+        formData.append('audio', file);
+        formData.append('settings', JSON.stringify(settings));
+
+        const response = await fetch('/api/convert', {
+          method: 'POST',
+          body: formData,
         });
-      }, 500);
 
-      const response = await fetch('/api/convert', {
-        method: 'POST',
-        body: formData,
-      });
+        if (!response.ok) {
+          throw new Error('Conversion failed');
+        }
 
-      clearInterval(progressInterval);
-
-      if (!response.ok) {
-        throw new Error('Conversion failed');
+        const result = await response.json();
+        results.push({ file, data: result });
+        setConversionProgress(Math.round(((i + 1) / audioFiles.length) * 100));
       }
-
-      const result = await response.json();
-      setMidiData(result);
-      setConversionProgress(100);
-      
-      setTimeout(() => {
-        setIsConverting(false);
-        setConversionProgress(0);
-      }, 1000);
+      setMidiData(results);
+      setIsConverting(false);
+      setConversionProgress(0);
 
     } catch (err) {
       setError(err.message);
@@ -84,21 +77,22 @@ function App() {
     }
   };
 
-  const handleDownload = () => {
-    if (!midiData) return;
-    
-    // Decode base64 MIDI content
-    const binaryString = atob(midiData.midiContent);
+  const handleDownload = (index) => {
+    const item = midiData[index];
+    if (!item) return;
+
+    const { file, data } = item;
+    const binaryString = atob(data.midiContent);
     const bytes = new Uint8Array(binaryString.length);
     for (let i = 0; i < binaryString.length; i++) {
       bytes[i] = binaryString.charCodeAt(i);
     }
-    
+
     const blob = new Blob([bytes], { type: 'audio/midi' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `${audioFile.name.replace(/\.[^/.]+$/, '')}_converted.mid`;
+    a.download = `${file.name.replace(/\.[^/.]+$/, '')}_converted.mid`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -133,9 +127,10 @@ function App() {
           >
             {/* Upload Section */}
             <div className="bg-dark-800 rounded-2xl shadow-xl p-6 border border-dark-700/60">
-              <AudioUploader 
-                onFileUpload={handleFileUpload}
-                audioFile={audioFile}
+              <AudioUploader
+                onFilesUpload={handleFilesUpload}
+                audioFiles={audioFiles}
+                onRemoveFile={handleRemoveFile}
               />
             </div>
 
@@ -189,9 +184,9 @@ function App() {
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               onClick={handleConvert}
-              disabled={!audioFile || isConverting}
+              disabled={audioFiles.length === 0 || isConverting}
               className={`w-full py-4 px-6 rounded-xl font-semibold text-lg transition-all duration-200 flex items-center justify-center gap-3 ${
-                !audioFile || isConverting
+                audioFiles.length === 0 || isConverting
                   ? 'bg-dark-700 text-gray-500 cursor-not-allowed'
                   : 'bg-gradient-to-r from-emerald-500 via-emerald-400 to-emerald-300 text-dark-900 hover:from-emerald-600 hover:to-emerald-400 shadow-lg hover:shadow-xl'
               }`}
@@ -214,17 +209,18 @@ function App() {
                 <span>{error}</span>
               </div>
             )}
-            {midiData && (
+            {midiData.length > 0 && midiData.map((item, idx) => (
               <motion.button
+                key={idx}
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
-                onClick={handleDownload}
+                onClick={() => handleDownload(idx)}
                 className="w-full py-3 px-6 rounded-xl font-semibold text-lg bg-gradient-to-r from-emerald-400 via-emerald-500 to-emerald-700 text-dark-900 hover:from-emerald-500 hover:to-emerald-800 shadow-lg hover:shadow-xl flex items-center justify-center gap-2 mt-2"
               >
                 <Download className="w-5 h-5" />
-                Download MIDI
+                {`Download ${item.file.name.replace(/\.[^/.]+$/, '')}.mid`}
               </motion.button>
-            )}
+            ))}
           </motion.div>
 
           {/* Right Panel - Piano Roll */}
@@ -233,7 +229,7 @@ function App() {
             animate={{ opacity: 1, x: 0 }}
             className="bg-dark-800 rounded-2xl shadow-xl p-6 border border-dark-700/60"
           >
-            <PianoRoll midiData={midiData} isConverting={isConverting} />
+            <PianoRoll midiData={midiData[0]?.data} isConverting={isConverting} />
           </motion.div>
         </div>
       </div>
