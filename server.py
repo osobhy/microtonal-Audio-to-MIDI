@@ -10,6 +10,7 @@ import librosa
 import pretty_midi
 import numpy as np
 import subprocess
+import sys
 
 app = Flask(__name__)
 CORS(app)
@@ -29,7 +30,7 @@ def convert_audio_to_midi(audio_path, settings):
     """Run the external microtonal engine to convert audio to MIDI."""
     midi_path = audio_path + '_converted.mid'
     script_path = os.path.join(os.path.dirname(__file__), 'script.py')
-    cmd = ['python', script_path, audio_path, midi_path]
+    cmd = [sys.executable, script_path, audio_path, midi_path]
     subprocess.run(cmd, check=True)
     midi = pretty_midi.PrettyMIDI(midi_path)
     return midi, midi_path
