@@ -3,19 +3,19 @@ import { useDropzone } from 'react-dropzone';
 import { motion } from 'framer-motion';
 import { Upload, FileAudio, X, CheckCircle } from 'lucide-react';
 
-const AudioUploader = ({ onFileUpload, audioFile }) => {
+const AudioUploader = ({ onFilesUpload, audioFiles, onRemoveFile }) => {
   const onDrop = useCallback((acceptedFiles) => {
     if (acceptedFiles.length > 0) {
-      onFileUpload(acceptedFiles[0]);
+      onFilesUpload([...audioFiles, ...acceptedFiles]);
     }
-  }, [onFileUpload]);
+  }, [onFilesUpload, audioFiles]);
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
     accept: {
       'audio/*': ['.wav', '.mp3', '.flac', '.aiff', '.m4a']
     },
-    multiple: false
+    multiple: true
   });
 
   const formatFileSize = (bytes) => {
@@ -26,18 +26,14 @@ const AudioUploader = ({ onFileUpload, audioFile }) => {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
 
-  const removeFile = () => {
-    onFileUpload(null);
-  };
-
   return (
     <div className="space-y-4">
       <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
         <FileAudio className="w-5 h-5" />
-        Upload Audio File
+        Upload Audio Files
       </h3>
-      
-      {!audioFile ? (
+
+      {audioFiles.length === 0 ? (
         <motion.div
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
@@ -62,7 +58,7 @@ const AudioUploader = ({ onFileUpload, audioFile }) => {
             </div>
             <div>
               <p className="text-lg font-medium text-gray-700 mb-2">
-                {isDragActive ? 'Drop your audio file here' : 'Drag & drop your audio file'}
+                {isDragActive ? 'Drop your audio files here' : 'Drag & drop your audio files'}
               </p>
               <p className="text-sm text-gray-500">
                 or click to browse files
@@ -74,34 +70,37 @@ const AudioUploader = ({ onFileUpload, audioFile }) => {
           </motion.div>
         </motion.div>
       ) : (
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="bg-green-50 border border-green-200 rounded-xl p-4"
-        >
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-green-100 rounded-full">
-                <CheckCircle className="w-5 h-5 text-green-600" />
-              </div>
-              <div>
-                <p className="font-medium text-green-800">{audioFile.name}</p>
-                <p className="text-sm text-green-600">
-                  {formatFileSize(audioFile.size)}
-                </p>
-              </div>
-            </div>
-            <button
-              onClick={removeFile}
-              className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-full transition-colors"
+        <div className="space-y-2">
+          {audioFiles.map((file, idx) => (
+            <motion.div
+              key={idx}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="bg-green-50 border border-green-200 rounded-xl p-4 flex items-center justify-between"
             >
-              <X className="w-4 h-4" />
-            </button>
-          </div>
-        </motion.div>
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-green-100 rounded-full">
+                  <CheckCircle className="w-5 h-5 text-green-600" />
+                </div>
+                <div>
+                  <p className="font-medium text-green-800">{file.name}</p>
+                  <p className="text-sm text-green-600">
+                    {formatFileSize(file.size)}
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => onRemoveFile(idx)}
+                className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-full transition-colors"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </motion.div>
+          ))}
+        </div>
       )}
     </div>
   );
 };
 
-export default AudioUploader; 
+export default AudioUploader;
