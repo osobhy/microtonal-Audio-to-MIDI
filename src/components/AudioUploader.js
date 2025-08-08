@@ -28,7 +28,7 @@ const AudioUploader = ({ onFilesUpload, audioFiles, onRemoveFile }) => {
 
   return (
     <div className="space-y-4">
-      <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
+      <h3 className="text-lg font-semibold text-gray-100 flex items-center gap-2">
         <FileAudio className="w-5 h-5" />
         Upload Audio Files
       </h3>
@@ -40,8 +40,8 @@ const AudioUploader = ({ onFilesUpload, audioFiles, onRemoveFile }) => {
           {...getRootProps()}
           className={`border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-all duration-200 ${
             isDragActive
-              ? 'border-blue-500 bg-blue-50'
-              : 'border-gray-300 hover:border-blue-400 hover:bg-gray-50'
+              ? 'border-emerald-500 bg-dark-700'
+              : 'border-dark-600 hover:border-emerald-400 hover:bg-dark-700'
           }`}
         >
           <input {...getInputProps()} />
@@ -50,17 +50,17 @@ const AudioUploader = ({ onFilesUpload, audioFiles, onRemoveFile }) => {
             className="flex flex-col items-center gap-4"
           >
             <div className={`p-4 rounded-full ${
-              isDragActive ? 'bg-blue-100' : 'bg-gray-100'
+              isDragActive ? 'bg-dark-600' : 'bg-dark-700'
             }`}>
               <Upload className={`w-8 h-8 ${
-                isDragActive ? 'text-blue-600' : 'text-gray-400'
+                isDragActive ? 'text-emerald-400' : 'text-gray-400'
               }`} />
             </div>
             <div>
-              <p className="text-lg font-medium text-gray-700 mb-2">
+              <p className="text-lg font-medium text-gray-200 mb-2">
                 {isDragActive ? 'Drop your audio files here' : 'Drag & drop your audio files'}
               </p>
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-gray-400">
                 or click to browse files
               </p>
               <p className="text-xs text-gray-400 mt-2">
@@ -76,22 +76,22 @@ const AudioUploader = ({ onFilesUpload, audioFiles, onRemoveFile }) => {
               key={idx}
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              className="bg-green-50 border border-green-200 rounded-xl p-4 flex items-center justify-between"
+              className="bg-dark-700 border border-dark-600 rounded-xl p-4 flex items-center justify-between"
             >
               <div className="flex items-center gap-3">
-                <div className="p-2 bg-green-100 rounded-full">
-                  <CheckCircle className="w-5 h-5 text-green-600" />
+                <div className="p-2 bg-dark-600 rounded-full">
+                  <CheckCircle className="w-5 h-5 text-emerald-400" />
                 </div>
                 <div>
-                  <p className="font-medium text-green-800">{file.name}</p>
-                  <p className="text-sm text-green-600">
+                  <p className="font-medium text-gray-100">{file.name}</p>
+                  <p className="text-sm text-gray-400">
                     {formatFileSize(file.size)}
                   </p>
                 </div>
               </div>
               <button
                 onClick={() => onRemoveFile(idx)}
-                className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-full transition-colors"
+                className="p-2 text-gray-400 hover:text-red-400 hover:bg-red-900/30 rounded-full transition-colors"
               >
                 <X className="w-4 h-4" />
               </button>

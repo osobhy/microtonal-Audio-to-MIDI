@@ -246,8 +246,8 @@ const PianoRoll = ({ midiData, isConverting }) => {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <Music className="w-5 h-5 text-gray-600" />
-          <span className="text-sm font-medium text-gray-600">Piano Roll</span>
+          <Music className="w-5 h-5 text-gray-300" />
+          <span className="text-sm font-medium text-gray-300">Piano Roll</span>
         </div>
         <div className="flex items-center gap-2">
           {/* Playback Controls */}
@@ -261,7 +261,7 @@ const PianoRoll = ({ midiData, isConverting }) => {
                 {isPlaying ? 'Stop' : 'Play'}
               </button>
               <div className="flex items-center gap-1">
-                <Volume2 className="w-3 h-3 text-gray-500" />
+                <Volume2 className="w-3 h-3 text-gray-400" />
                 <input
                   type="range"
                   min="0"
@@ -269,18 +269,18 @@ const PianoRoll = ({ midiData, isConverting }) => {
                   step="0.1"
                   value={volume}
                   onChange={(e) => setVolume(parseFloat(e.target.value))}
-                  className="w-16 h-1 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                  className="w-16 h-1 bg-dark-600 rounded-lg appearance-none cursor-pointer"
                 />
               </div>
             </div>
           )}
           <button
             onClick={resetView}
-            className="px-3 py-1 text-xs bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-md transition-colors"
+            className="px-3 py-1 text-xs bg-dark-700 hover:bg-dark-600 text-gray-300 rounded-md transition-colors"
           >
             Reset View
           </button>
-          <span className="text-xs text-gray-500">
+          <span className="text-xs text-gray-400">
             Zoom: {Math.round(zoom * 100)}%
           </span>
         </div>
@@ -291,11 +291,11 @@ const PianoRoll = ({ midiData, isConverting }) => {
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className="absolute inset-0 flex items-center justify-center bg-gray-50 rounded-lg border-2 border-dashed border-gray-300"
+            className="absolute inset-0 flex items-center justify-center bg-dark-800 rounded-lg border-2 border-dashed border-dark-600"
           >
             <div className="text-center">
-              <Music className="w-12 h-12 text-gray-400 mx-auto mb-3" />
-              <p className="text-gray-500 text-sm">
+              <Music className="w-12 h-12 text-gray-500 mx-auto mb-3" />
+              <p className="text-gray-400 text-sm">
                 Convert audio to see piano roll visualization
               </p>
             </div>
@@ -306,11 +306,11 @@ const PianoRoll = ({ midiData, isConverting }) => {
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className="absolute inset-0 flex items-center justify-center bg-gray-50 rounded-lg"
+            className="absolute inset-0 flex items-center justify-center bg-dark-800 rounded-lg"
           >
             <div className="text-center">
               <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-3"></div>
-              <p className="text-gray-500 text-sm">
+              <p className="text-gray-400 text-sm">
                 Converting audio...
               </p>
             </div>
@@ -335,20 +335,20 @@ const PianoRoll = ({ midiData, isConverting }) => {
         {/* Playback Progress */}
         {midiData && midiData.notes && (
           <div className="mt-2 space-y-1">
-            <div className="flex items-center justify-between text-xs text-gray-500">
+            <div className="flex items-center justify-between text-xs text-gray-400">
               <span>{formatTime(currentTime)}</span>
               <span>{formatTime(midiData.duration)}</span>
             </div>
-            <div className="w-full bg-gray-200 rounded-full h-1">
-              <div 
+            <div className="w-full bg-dark-600 rounded-full h-1">
+              <div
                 className="bg-blue-500 h-1 rounded-full transition-all duration-100"
                 style={{ width: `${(currentTime / midiData.duration) * 100}%` }}
               />
             </div>
           </div>
         )}
-        
-        <div className="mt-2 text-xs text-gray-500">
+
+        <div className="mt-2 text-xs text-gray-400">
           <p>Scroll to navigate • Ctrl+Scroll to zoom • {midiData?.notes?.length || 0} notes</p>
         </div>
       </div>

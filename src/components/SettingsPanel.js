@@ -15,20 +15,20 @@ const SettingsPanel = ({ settings, onSettingsChange }) => {
       initial={{ opacity: 0, height: 0 }}
       animate={{ opacity: 1, height: 'auto' }}
       exit={{ opacity: 0, height: 0 }}
-      className="space-y-4 pt-4 border-t border-gray-200"
+      className="space-y-4 pt-4 border-t border-dark-700"
     >
       <div className="flex items-center gap-2 mb-4">
-        <Sliders className="w-4 h-4 text-gray-600" />
-        <span className="text-sm font-medium text-gray-700">Advanced Settings</span>
+        <Sliders className="w-4 h-4 text-gray-300" />
+        <span className="text-sm font-medium text-gray-100">Advanced Settings</span>
       </div>
 
       {/* Pitch Bend Range */}
       <div className="space-y-2">
         <div className="flex items-center justify-between">
-          <label className="text-sm font-medium text-gray-700">
+          <label className="text-sm font-medium text-gray-100">
             Pitch Bend Range
           </label>
-          <span className="text-sm text-gray-500">
+          <span className="text-sm text-gray-400">
             {settings.pitchBendRange} semitones
           </span>
         </div>
@@ -39,9 +39,9 @@ const SettingsPanel = ({ settings, onSettingsChange }) => {
           step="0.5"
           value={settings.pitchBendRange}
           onChange={(e) => handleSettingChange('pitchBendRange', parseFloat(e.target.value))}
-          className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
+          className="w-full h-2 bg-dark-600 rounded-lg appearance-none cursor-pointer slider"
         />
-        <p className="text-xs text-gray-500">
+        <p className="text-xs text-gray-400">
           Controls the range of pitch bend messages (must match your synth)
         </p>
       </div>
@@ -49,10 +49,10 @@ const SettingsPanel = ({ settings, onSettingsChange }) => {
       {/* Drift Threshold */}
       <div className="space-y-2">
         <div className="flex items-center justify-between">
-          <label className="text-sm font-medium text-gray-700">
+          <label className="text-sm font-medium text-gray-100">
             Drift Threshold
           </label>
-          <span className="text-sm text-gray-500">
+          <span className="text-sm text-gray-400">
             {settings.driftThreshold}
           </span>
         </div>
@@ -63,9 +63,9 @@ const SettingsPanel = ({ settings, onSettingsChange }) => {
           step="0.1"
           value={settings.driftThreshold}
           onChange={(e) => handleSettingChange('driftThreshold', parseFloat(e.target.value))}
-          className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
+          className="w-full h-2 bg-dark-600 rounded-lg appearance-none cursor-pointer slider"
         />
-        <p className="text-xs text-gray-500">
+        <p className="text-xs text-gray-400">
           When to split into new notes (higher = fewer note splits)
         </p>
       </div>
@@ -73,10 +73,10 @@ const SettingsPanel = ({ settings, onSettingsChange }) => {
       {/* Quantization Step */}
       <div className="space-y-2">
         <div className="flex items-center justify-between">
-          <label className="text-sm font-medium text-gray-700">
+          <label className="text-sm font-medium text-gray-100">
             Quantization Step
           </label>
-          <span className="text-sm text-gray-500">
+          <span className="text-sm text-gray-400">
             {settings.quantizationStep}
           </span>
         </div>
@@ -87,16 +87,16 @@ const SettingsPanel = ({ settings, onSettingsChange }) => {
           step="0.1"
           value={settings.quantizationStep}
           onChange={(e) => handleSettingChange('quantizationStep', parseFloat(e.target.value))}
-          className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
+          className="w-full h-2 bg-dark-600 rounded-lg appearance-none cursor-pointer slider"
         />
-        <p className="text-xs text-gray-500">
+        <p className="text-xs text-gray-400">
           Quantize to quarter tones (0.5 = half semitone, 1.0 = full semitone)
         </p>
       </div>
 
       {/* Preset Buttons */}
       <div className="pt-2">
-        <p className="text-xs font-medium text-gray-700 mb-2">Quick Presets:</p>
+        <p className="text-xs font-medium text-gray-300 mb-2">Quick Presets:</p>
         <div className="flex gap-2">
           <button
             onClick={() => onSettingsChange({
@@ -104,7 +104,7 @@ const SettingsPanel = ({ settings, onSettingsChange }) => {
               driftThreshold: 0.5,
               quantizationStep: 0.5
             })}
-            className="px-3 py-1 text-xs bg-blue-100 hover:bg-blue-200 text-blue-700 rounded-md transition-colors"
+            className="px-3 py-1 text-xs bg-dark-700 hover:bg-dark-600 text-emerald-400 rounded-md transition-colors"
           >
             Default
           </button>
@@ -114,7 +114,7 @@ const SettingsPanel = ({ settings, onSettingsChange }) => {
               driftThreshold: 0.3,
               quantizationStep: 1.0
             })}
-            className="px-3 py-1 text-xs bg-green-100 hover:bg-green-200 text-green-700 rounded-md transition-colors"
+            className="px-3 py-1 text-xs bg-dark-700 hover:bg-dark-600 text-blue-400 rounded-md transition-colors"
           >
             Precise
           </button>
@@ -124,7 +124,7 @@ const SettingsPanel = ({ settings, onSettingsChange }) => {
               driftThreshold: 1.0,
               quantizationStep: 0.25
             })}
-            className="px-3 py-1 text-xs bg-purple-100 hover:bg-purple-200 text-purple-700 rounded-md transition-colors"
+            className="px-3 py-1 text-xs bg-dark-700 hover:bg-dark-600 text-purple-400 rounded-md transition-colors"
           >
             Microtonal
           </button>

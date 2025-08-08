@@ -122,8 +122,8 @@ const AudioPlayer = ({ audioFile }) => {
     <div className="space-y-4">
       {/* Waveform Visualization */}
       <div className="relative">
-        <div 
-          className="h-16 bg-gray-100 rounded-lg cursor-pointer relative overflow-hidden"
+        <div
+          className="h-16 bg-dark-700 rounded-lg cursor-pointer relative overflow-hidden"
           onClick={handleSeek}
         >
           {waveform.length > 0 ? (
@@ -148,7 +148,7 @@ const AudioPlayer = ({ audioFile }) => {
             </div>
           ) : (
             <div className="flex items-center justify-center h-full">
-              <div className="w-8 h-8 border-2 border-gray-300 border-t-transparent rounded-full animate-spin"></div>
+              <div className="w-8 h-8 border-2 border-dark-600 border-t-transparent rounded-full animate-spin"></div>
             </div>
           )}
           
@@ -174,7 +174,7 @@ const AudioPlayer = ({ audioFile }) => {
 
         {/* Time Display */}
         <div className="flex-1 text-center">
-          <div className="text-sm font-mono text-gray-600">
+          <div className="text-sm font-mono text-gray-300">
             {formatTime(currentTime)} / {formatTime(duration)}
           </div>
         </div>
@@ -183,7 +183,7 @@ const AudioPlayer = ({ audioFile }) => {
         <div className="flex items-center gap-2">
           <button
             onClick={toggleMute}
-            className="p-2 text-gray-600 hover:text-gray-800 transition-colors"
+            className="p-2 text-gray-300 hover:text-white transition-colors"
           >
             {isMuted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
           </button>
@@ -194,13 +194,13 @@ const AudioPlayer = ({ audioFile }) => {
             step="0.01"
             value={isMuted ? 0 : volume}
             onChange={handleVolumeChange}
-            className="w-20 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
+            className="w-20 h-2 bg-dark-600 rounded-lg appearance-none cursor-pointer slider"
           />
         </div>
       </div>
 
       {/* File Info */}
-      <div className="text-xs text-gray-500">
+      <div className="text-xs text-gray-400">
         <p>Duration: {formatTime(duration)} • Format: {audioFile?.type || 'Unknown'}</p>
       </div>
     </div>
