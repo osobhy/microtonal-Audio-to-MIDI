@@ -1,8 +1,25 @@
-flask==2.3.3
-flask-cors==4.0.0
-librosa==0.10.1
+# build helpers
+pip==25.1.1
+setuptools>=69
+wheel>=0.42
+
+# scientific stack
+numpy==1.26.4
+scipy==1.11.4
+
+# librosa + JIT deps
+librosa==0.10.2.post1
+numba==0.59.1
+llvmlite==0.42.0
+
+# audio I/O
+soundfile==0.12.1
+audioread==3.0.1
+
+# MIDI
 pretty_midi==0.2.10
-numpy==1.24.3
-werkzeug==2.3.7
-scipy==1.11.1
-soundfile==0.12.1 
+mido==1.3.2
+
+
+Flask==3.0.3
+gunicorn==22.0.0
