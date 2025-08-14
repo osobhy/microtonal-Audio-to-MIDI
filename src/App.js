@@ -113,6 +113,7 @@ function App() {
           className="text-center mb-12"
         >
             <h1 className="text-6xl font-extrabold bg-gradient-to-r from-white via-indigo-200 to-indigo-400 bg-clip-text text-transparent mb-4 tracking-widest" style={{ fontFamily: 'Poppins, sans-serif', letterSpacing: '0.08em' }}>
+              Microtonal Audio to MIDI Converter
             </h1>
             <p className="text-xl text-gray-200 max-w-2xl mx-auto">
               A first-of-its-kind tool to convert Microtonal Audio to MIDI. Enjoy :)
