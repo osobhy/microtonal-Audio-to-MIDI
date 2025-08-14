@@ -7,19 +7,19 @@
     "@testing-library/jest-dom": "^5.16.4",
     "@testing-library/react": "^13.3.0",
     "@testing-library/user-event": "^13.5.0",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "react-scripts": "5.0.1",
-    "web-vitals": "^2.1.4",
+    "autoprefixer": "^10.4.14",
     "axios": "^1.4.0",
-    "react-dropzone": "^14.2.3",
-    "react-piano": "^3.0.0",
-    "tone": "^14.7.77",
     "framer-motion": "^10.12.16",
     "lucide-react": "^0.263.1",
+    "postcss": "^8.4.24",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-dropzone": "^14.2.3",
+    "react-piano": "^3.0.0",
+    "react-scripts": "^0.0.0",
     "tailwindcss": "^3.3.2",
-    "autoprefixer": "^10.4.14",
-    "postcss": "^8.4.24"
+    "tone": "^14.7.77",
+    "web-vitals": "^2.1.4"
   },
   "scripts": {
     "start": "react-scripts start",
@@ -45,5 +45,11 @@
       "last 1 safari version"
     ]
   },
-  "proxy": "http://localhost:8000"
-} 
+  "proxy": "http://localhost:8000",
+  "devDependencies": {
+    "typescript": "4.9.5"
+  },
+  "overrides": {
+    "typescript": "4.9.5"
+  }
+}
