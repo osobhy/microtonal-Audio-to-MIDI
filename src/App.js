@@ -42,6 +42,8 @@ function App() {
     setAudioFiles(prev => prev.filter((_, i) => i !== index));
   };
 
+  const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+
   const handleConvert = async () => {
     if (audioFiles.length === 0) return;
 
@@ -57,17 +59,44 @@ function App() {
         formData.append('audio', file);
         formData.append('settings', JSON.stringify(settings));
 
-        const response = await fetch(`${API_BASE}/api/convert`, { method: 'POST', body: formData })
+        const response = await fetch(`${API_BASE}/api/convert`, { method: 'POST', body: formData });
 
-
-        if (!response.ok) {
-          throw new Error('Conversion failed');
+        if (response.status !== 202) {
+          const body = await response.json().catch(() => ({}));
+          throw new Error(body.error || 'Conversion request failed');
         }
 
-        const result = await response.json();
-        results.push({ file, data: result });
+        const { jobId } = await response.json();
+
+        // Poll for completion
+        let pollDelay = 1000;
+        let finished = false;
+        const pollStart = Date.now();
+        while (!finished) {
+          await sleep(pollDelay);
+          const statusResp = await fetch(`${API_BASE}/api/status/${jobId}`);
+          if (!statusResp.ok) {
+            throw new Error('Failed to query job status');
+          }
+          const status = await statusResp.json();
+          if (status.status === 'done') {
+            results.push({ file, data: status.result });
+            finished = true;
+          } else if (status.status === 'error') {
+            throw new Error(status.error || 'Conversion failed');
+          } else {
+            // backoff but cap
+            pollDelay = Math.min(5000, pollDelay * 1.5);
+          }
+          // safety timeout for polling (e.g., 10 minutes)
+          if (Date.now() - pollStart > 1000 * 60 * 10) {
+            throw new Error('Conversion timed out');
+          }
+        }
+
         setConversionProgress(Math.round(((i + 1) / audioFiles.length) * 100));
       }
+
       setMidiData(results);
       setIsConverting(false);
       setConversionProgress(0);

@@ -8,12 +8,17 @@ from script import convert_audio_file
 import threading
 import uuid
 import time
+import tempfile
 
 app = Flask(__name__)
 CORS(app, resources={r"/api/*": {"origins": os.environ.get("CORS_ORIGIN", "*").split(",")}})
 
+# Job persistence
+JOBS_FILE = os.environ.get('JOBS_FILE', 'jobs.json')
 # Simple in-memory job store: {job_id: {status:'pending'|'running'|'done'|'error', result:..., error:...}}
 jobs = {}
+# Lock to protect concurrent access and file writes
+jobs_lock = threading.Lock()
 
 # Configuration
 UPLOAD_FOLDER = 'uploads'
@@ -30,10 +35,12 @@ def allowed_file(filename):
 
 def _process_job(job_id, temp_path, filename, settings):
     try:
-        jobs[job_id]['status'] = 'running'
+        with jobs_lock:
+            jobs[job_id]['status'] = 'running'
+            _save_jobs()
         midi_path = temp_path + '_converted.mid'
-        # Run conversion (this is CPU-heavy)
-        midi = convert_audio_file(temp_path, midi_path)
+        # Run conversion (this is CPU-heavy). Pass settings so runtime tuning is applied.
+        midi = convert_audio_file(temp_path, midi_path, settings)
 
         # Read MIDI file
         with open(midi_path, 'rb') as f:
@@ -63,12 +70,16 @@ def _process_job(job_id, temp_path, filename, settings):
             'duration': float(midi.get_end_time())
         }
 
-        jobs[job_id]['status'] = 'done'
-        jobs[job_id]['result'] = response_data
+        with jobs_lock:
+            jobs[job_id]['status'] = 'done'
+            jobs[job_id]['result'] = response_data
+            _save_jobs()
 
     except Exception as e:
-        jobs[job_id]['status'] = 'error'
-        jobs[job_id]['error'] = str(e)
+        with jobs_lock:
+            jobs[job_id]['status'] = 'error'
+            jobs[job_id]['error'] = str(e)
+            _save_jobs()
         import traceback
         traceback.print_exc()
     finally:
@@ -80,6 +91,52 @@ def _process_job(job_id, temp_path, filename, settings):
                 os.remove(midi_path)
         except Exception as cleanup_error:
             print(f"Warning: Could not clean up temporary files: {cleanup_error}")
+
+
+def _save_jobs():
+    """Atomically save the jobs dict to JOBS_FILE."""
+    try:
+        # Write to a temp file first then atomically replace
+        dirpath = os.path.dirname(os.path.abspath(JOBS_FILE)) or '.'
+        fd, tmp_path = tempfile.mkstemp(prefix='jobs-', dir=dirpath)
+        try:
+            with os.fdopen(fd, 'w') as f:
+                json.dump(jobs, f)
+            os.replace(tmp_path, JOBS_FILE)
+        finally:
+            if os.path.exists(tmp_path):
+                try:
+                    os.remove(tmp_path)
+                except Exception:
+                    pass
+    except Exception as e:
+        print(f"Warning: failed to persist jobs to {JOBS_FILE}: {e}")
+
+
+def _load_jobs():
+    """Load jobs from JOBS_FILE into memory. Any non-done job is marked error because background workers won't be resumed."""
+    global jobs
+    if not os.path.exists(JOBS_FILE):
+        return
+    try:
+        with open(JOBS_FILE, 'r') as f:
+            loaded = json.load(f)
+        # Normalize statuses: any pending/running -> error (worker won't be resumed)
+        for jid, job in list(loaded.items()):
+            if not isinstance(job, dict):
+                loaded[jid] = {'status': 'error', 'error': 'corrupt job data'}
+                continue
+            status = job.get('status')
+            if status in ('done', 'error'):
+                # keep as-is
+                continue
+            # mark as error so clients know it was interrupted
+            job['status'] = 'error'
+            job['error'] = 'Server restarted while processing this job; job not completed.'
+        with jobs_lock:
+            jobs = loaded
+    except Exception as e:
+        print(f"Warning: failed to load jobs from {JOBS_FILE}: {e}")
 
 
 def convert_audio_to_midi(audio_path, settings):
@@ -128,7 +185,9 @@ def convert_audio():
 
         # Create job and start background thread
         job_id = str(uuid.uuid4())
-        jobs[job_id] = {'status': 'pending', 'result': None}
+        with jobs_lock:
+            jobs[job_id] = {'status': 'pending', 'result': None}
+            _save_jobs()
         thread = threading.Thread(target=_process_job, args=(job_id, temp_path, filename, settings))
         thread.daemon = True
         thread.start()
@@ -145,14 +204,15 @@ def convert_audio():
 
 @app.route('/api/status/<job_id>', methods=['GET'])
 def job_status(job_id):
-    job = jobs.get(job_id)
-    if not job:
-        return jsonify({'error': 'Job not found'}), 404
-    if job['status'] == 'done':
-        return jsonify({'status': 'done', 'result': job['result']})
-    if job['status'] == 'error':
-        return jsonify({'status': 'error', 'error': job.get('error')}), 500
-    return jsonify({'status': job['status']}), 200
+    with jobs_lock:
+        job = jobs.get(job_id)
+        if not job:
+            return jsonify({'error': 'Job not found'}), 404
+        if job['status'] == 'done':
+            return jsonify({'status': 'done', 'result': job['result']})
+        if job['status'] == 'error':
+            return jsonify({'status': 'error', 'error': job.get('error')}), 500
+        return jsonify({'status': job['status']}), 200
 
 
 @app.route('/api/health', methods=['GET'])
@@ -161,5 +221,22 @@ def health_check():
 
 
 if __name__ == '__main__':
+    # Load persisted jobs (if any) and normalize unfinished jobs to error
+    _load_jobs()
+
+    # Ensure we persist jobs on clean exit
+    try:
+        import atexit
+
+        @atexit.register
+        def _on_exit():
+            try:
+                with jobs_lock:
+                    _save_jobs()
+            except Exception:
+                pass
+    except Exception:
+        pass
+
     port = int(os.environ.get('PORT', 8000))
     app.run(debug=True, host='0.0.0.0', port=port)
