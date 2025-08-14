@@ -79,7 +79,7 @@ function App() {
             throw new Error('Failed to query job status');
           }
           const status = await statusResp.json();
-          if (status.status === 'done') {
+          if (status.status === 'done' && status.result && status.result.midiContent) {
             results.push({ file, data: status.result });
             finished = true;
           } else if (status.status === 'error') {
@@ -241,16 +241,18 @@ function App() {
               </div>
             )}
             {midiData.length > 0 && midiData.map((item, idx) => (
-              <motion.button
-                key={idx}
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                onClick={() => handleDownload(idx)}
-                className="w-full py-3 px-6 rounded-xl font-semibold text-lg bg-gradient-to-r from-indigo-400 via-purple-500 to-indigo-700 text-white hover:from-indigo-500 hover:to-indigo-800 shadow-lg hover:shadow-xl flex items-center justify-center gap-2 mt-2"
-              >
-                <Download className="w-5 h-5" />
-                {`Download ${item.file.name.replace(/\.[^/.]+$/, '')}.mid`}
-              </motion.button>
+              item.data && item.data.midiContent && (
+                <motion.button
+                  key={idx}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={() => handleDownload(idx)}
+                  className="w-full py-3 px-6 rounded-xl font-semibold text-lg bg-gradient-to-r from-indigo-400 via-purple-500 to-indigo-700 text-white hover:from-indigo-500 hover:to-indigo-800 shadow-lg hover:shadow-xl flex items-center justify-center gap-2 mt-2"
+                >
+                  <Download className="w-5 h-5" />
+                  {`Download ${item.file.name.replace(/\.[^/.]+$/, '')}.mid`}
+                </motion.button>
+              )
             ))}
           </motion.div>
 

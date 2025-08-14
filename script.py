@@ -161,8 +161,18 @@ def add_note(instrument, times, rms, midi_pitch_float, idx_start, idx_end):
     emit_pitch_bend_events(instrument, times, midi_pitch_float, base_semitone_int, idx_start, idx_end)
     return True
 
-def convert_audio_file(audio_path, midi_output):
+def convert_audio_file(audio_path, midi_output, settings=None):
     """Convert an audio file to MIDI using the microtonal engine."""
+    # Apply settings overrides if provided
+    global PITCH_BEND_RANGE, QUANTIZATION_STEP, SLIDE_SPLIT_SEMITONES
+    if settings:
+        if 'pitchBendRange' in settings:
+            PITCH_BEND_RANGE = float(settings['pitchBendRange'])
+        if 'driftThreshold' in settings:
+            SLIDE_SPLIT_SEMITONES = float(settings['driftThreshold'])
+        if 'quantizationStep' in settings:
+            QUANTIZATION_STEP = float(settings['quantizationStep'])
+
     # =========================
     # LOAD + FEATURES
     # =========================
