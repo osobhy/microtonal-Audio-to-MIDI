@@ -38,10 +38,10 @@ const AudioUploader = ({ onFilesUpload, audioFiles, onRemoveFile }) => {
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
           {...getRootProps()}
-          className={`border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-all duration-200 ${
+            className={`border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-all duration-200 ${
             isDragActive
-              ? 'border-emerald-500 bg-dark-700'
-              : 'border-dark-600 hover:border-emerald-400 hover:bg-dark-700'
+              ? 'border-indigo-500 bg-dark-700'
+              : 'border-dark-600 hover:border-indigo-400 hover:bg-dark-700'
           }`}
         >
           <input {...getInputProps()} />
@@ -53,7 +53,7 @@ const AudioUploader = ({ onFilesUpload, audioFiles, onRemoveFile }) => {
               isDragActive ? 'bg-dark-600' : 'bg-dark-700'
             }`}>
               <Upload className={`w-8 h-8 ${
-                isDragActive ? 'text-emerald-400' : 'text-gray-400'
+                isDragActive ? 'text-indigo-400' : 'text-gray-400'
               }`} />
             </div>
             <div>
@@ -80,7 +80,7 @@ const AudioUploader = ({ onFilesUpload, audioFiles, onRemoveFile }) => {
             >
               <div className="flex items-center gap-3">
                 <div className="p-2 bg-dark-600 rounded-full">
-                  <CheckCircle className="w-5 h-5 text-emerald-400" />
+                  <CheckCircle className="w-5 h-5 text-indigo-400" />
                 </div>
                 <div>
                   <p className="font-medium text-gray-100">{file.name}</p>

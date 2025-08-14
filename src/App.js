@@ -101,8 +101,8 @@ function App() {
 
   return (
     <div className="min-h-screen bg-dark-900 relative overflow-hidden">
-      {/* Subtle green glow/vignette */}
-      <div className="pointer-events-none fixed inset-0 z-0" style={{background: 'radial-gradient(ellipse at 70% 10%, #10b98122 0%, #000 80%)'}} />
+        {/* Subtle accent glow/vignette */}
+      <div className="pointer-events-none fixed inset-0 z-0" style={{background: 'radial-gradient(ellipse at 70% 10%, #6366F122 0%, #000 80%)'}} />
       <div className="container mx-auto px-4 py-8 relative z-10">
         {/* Header */}
         <motion.div 
@@ -110,12 +110,12 @@ function App() {
           animate={{ opacity: 1, y: 0 }}
           className="text-center mb-12"
         >
-          <h1 className="text-6xl font-extrabold bg-gradient-to-r from-white via-emerald-200 to-emerald-400 bg-clip-text text-transparent mb-4 tracking-widest" style={{ fontFamily: 'Space Grotesk, sans-serif', letterSpacing: '0.08em' }}>
-            Audio to MIDI Converter
-          </h1>
-          <p className="text-xl text-gray-200 max-w-2xl mx-auto">
-            Transform your audio files into MIDI with beautiful piano roll visualization
-          </p>
+            <h1 className="text-6xl font-extrabold bg-gradient-to-r from-white via-indigo-200 to-indigo-400 bg-clip-text text-transparent mb-4 tracking-widest" style={{ fontFamily: 'Space Grotesk, sans-serif', letterSpacing: '0.08em' }}>
+              Audio to MIDI Converter
+            </h1>
+            <p className="text-xl text-gray-200 max-w-2xl mx-auto">
+              A first-of-its-kind tool to convert Microtonal Audio to MIDI. Enjoy :)
+            </p>
         </motion.div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 max-w-7xl mx-auto">
@@ -138,12 +138,12 @@ function App() {
             <div className="bg-dark-800 rounded-2xl shadow-xl p-6 border border-dark-700/60">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-semibold text-white flex items-center gap-2">
-                  <Settings className="w-5 h-5 text-emerald-400" />
+                  <Settings className="w-5 h-5 text-indigo-400" />
                   Conversion Settings
                 </h3>
                 <button
                   onClick={() => setShowSettings(!showSettings)}
-                  className="text-emerald-300 hover:text-emerald-200 text-sm font-medium"
+                  className="text-indigo-300 hover:text-indigo-200 text-sm font-medium"
                 >
                   {showSettings ? 'Hide' : 'Advanced'}
                 </button>
@@ -185,10 +185,10 @@ function App() {
               whileTap={{ scale: 0.98 }}
               onClick={handleConvert}
               disabled={audioFiles.length === 0 || isConverting}
-              className={`w-full py-4 px-6 rounded-xl font-semibold text-lg transition-all duration-200 flex items-center justify-center gap-3 ${
+                className={`w-full py-4 px-6 rounded-xl font-semibold text-lg transition-all duration-200 flex items-center justify-center gap-3 ${
                 audioFiles.length === 0 || isConverting
                   ? 'bg-dark-700 text-gray-500 cursor-not-allowed'
-                  : 'bg-gradient-to-r from-emerald-500 via-emerald-400 to-emerald-300 text-dark-900 hover:from-emerald-600 hover:to-emerald-400 shadow-lg hover:shadow-xl'
+                  : 'bg-gradient-to-r from-indigo-500 via-purple-500 to-indigo-400 text-white hover:from-indigo-600 hover:to-purple-500 shadow-lg hover:shadow-xl'
               }`}
             >
               {isConverting ? (
@@ -215,7 +215,7 @@ function App() {
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 onClick={() => handleDownload(idx)}
-                className="w-full py-3 px-6 rounded-xl font-semibold text-lg bg-gradient-to-r from-emerald-400 via-emerald-500 to-emerald-700 text-dark-900 hover:from-emerald-500 hover:to-emerald-800 shadow-lg hover:shadow-xl flex items-center justify-center gap-2 mt-2"
+                className="w-full py-3 px-6 rounded-xl font-semibold text-lg bg-gradient-to-r from-indigo-400 via-purple-500 to-indigo-700 text-white hover:from-indigo-500 hover:to-indigo-800 shadow-lg hover:shadow-xl flex items-center justify-center gap-2 mt-2"
               >
                 <Download className="w-5 h-5" />
                 {`Download ${item.file.name.replace(/\.[^/.]+$/, '')}.mid`}

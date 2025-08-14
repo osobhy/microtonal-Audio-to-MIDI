@@ -1,7 +1,7 @@
 {
   "name": "audio-to-midi-converter",
   "version": "1.0.0",
-  "description": "A beautiful React GUI for converting audio to MIDI with piano roll visualization",
+  "description": "A first-of-its-kind tool to convert Microtonal Audio to MIDI. Enjoy :)",
   "private": true,
   "dependencies": {
     "@testing-library/jest-dom": "^5.16.4",

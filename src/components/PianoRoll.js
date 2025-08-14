@@ -203,9 +203,9 @@ const PianoRoll = ({ midiData, isConverting }) => {
           gradient.addColorStop(0.5, '#f59e0b'); // Orange
           gradient.addColorStop(1, '#d97706'); // Dark orange
         } else {
-          gradient.addColorStop(0, '#60a5fa'); // Lighter blue
-          gradient.addColorStop(0.5, '#8b5cf6'); // Purple
-          gradient.addColorStop(1, '#a855f7'); // Lighter purple
+            gradient.addColorStop(0, '#6366F1'); // Indigo
+            gradient.addColorStop(0.5, '#8b5cf6'); // Purple
+            gradient.addColorStop(1, '#a855f7'); // Lighter purple
         }
         
         ctx.fillStyle = gradient;
@@ -255,7 +255,7 @@ const PianoRoll = ({ midiData, isConverting }) => {
             <div className="flex items-center gap-2">
               <button
                 onClick={isPlaying ? stopPlayback : startPlayback}
-                className="flex items-center gap-1 px-3 py-1 text-xs bg-blue-500 hover:bg-blue-600 text-white rounded-md transition-colors"
+                  className="flex items-center gap-1 px-3 py-1 text-xs bg-indigo-500 hover:bg-indigo-600 text-white rounded-md transition-colors"
               >
                 {isPlaying ? <Pause className="w-3 h-3" /> : <Play className="w-3 h-3" />}
                 {isPlaying ? 'Stop' : 'Play'}
@@ -309,7 +309,7 @@ const PianoRoll = ({ midiData, isConverting }) => {
             className="absolute inset-0 flex items-center justify-center bg-dark-800 rounded-lg"
           >
             <div className="text-center">
-              <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-3"></div>
+                <div className="w-8 h-8 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin mx-auto mb-3"></div>
               <p className="text-gray-400 text-sm">
                 Converting audio...
               </p>
@@ -341,7 +341,7 @@ const PianoRoll = ({ midiData, isConverting }) => {
             </div>
             <div className="w-full bg-dark-600 rounded-full h-1">
               <div
-                className="bg-blue-500 h-1 rounded-full transition-all duration-100"
+                  className="bg-indigo-500 h-1 rounded-full transition-all duration-100"
                 style={{ width: `${(currentTime / midiData.duration) * 100}%` }}
               />
             </div>

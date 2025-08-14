@@ -104,7 +104,7 @@ const SettingsPanel = ({ settings, onSettingsChange }) => {
               driftThreshold: 0.5,
               quantizationStep: 0.5
             })}
-            className="px-3 py-1 text-xs bg-dark-700 hover:bg-dark-600 text-emerald-400 rounded-md transition-colors"
+            className="px-3 py-1 text-xs bg-dark-700 hover:bg-dark-600 text-indigo-400 rounded-md transition-colors"
           >
             Default
           </button>

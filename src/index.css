@@ -11,12 +11,12 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background-color: #0a0a0a;
+  background-color: #111827;
   background-image:
-    radial-gradient(at 20% 30%, rgba(16,185,129,0.25) 0, transparent 60%),
-    radial-gradient(at 80% 10%, rgba(14,165,233,0.25) 0, transparent 60%),
-    radial-gradient(at 60% 80%, rgba(6,95,70,0.3) 0, transparent 60%),
-    linear-gradient(#000000, #0a0a0a);
+    radial-gradient(at 20% 30%, rgba(99,102,241,0.25) 0, transparent 60%),
+    radial-gradient(at 80% 10%, rgba(139,92,246,0.25) 0, transparent 60%),
+    radial-gradient(at 60% 80%, rgba(79,70,229,0.3) 0, transparent 60%),
+    linear-gradient(#000000, #111827);
   color: #e5e7eb;
   min-height: 100vh;
 }
@@ -47,7 +47,7 @@ code {
 
 /* Piano roll styles */
 .piano-roll {
-  background: #1a1a1a;
+  background: #1f2937;
   border-radius: 8px;
   overflow: hidden;
 }
@@ -61,7 +61,7 @@ code {
 
 
 .note-block {
-  background: linear-gradient(45deg, #0ea5e9, #10b981);
+  background: linear-gradient(45deg, #6366F1, #8B5CF6);
   border-radius: 4px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.3);
   transition: all 0.2s ease;
@@ -74,7 +74,7 @@ code {
 
 /* Audio waveform */
 .waveform {
-  background: linear-gradient(90deg, #0ea5e9, #10b981);
+  background: linear-gradient(90deg, #6366F1, #8B5CF6);
   border-radius: 4px;
   opacity: 0.8;
 }
@@ -113,7 +113,7 @@ code {
 .slider::-webkit-slider-thumb {
   -webkit-appearance: none;
   appearance: none;
-  background: linear-gradient(135deg, #0ea5e9, #10b981);
+  background: linear-gradient(135deg, #6366F1, #8B5CF6);
   height: 20px;
   width: 20px;
   border-radius: 50%;
@@ -135,7 +135,7 @@ code {
 }
 
 .slider::-moz-range-thumb {
-  background: linear-gradient(135deg, #0ea5e9, #10b981);
+  background: linear-gradient(135deg, #6366F1, #8B5CF6);
   height: 20px;
   width: 20px;
   border-radius: 50%;

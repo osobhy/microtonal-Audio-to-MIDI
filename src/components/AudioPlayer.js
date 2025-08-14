@@ -153,22 +153,22 @@ const AudioPlayer = ({ audioFile }) => {
           )}
           
           {/* Progress overlay */}
-          <div 
-            className="absolute top-0 left-0 h-full bg-blue-500 bg-opacity-20 pointer-events-none"
-            style={{ width: `${(currentTime / duration) * 100}%` }}
-          />
+            <div
+              className="absolute top-0 left-0 h-full bg-indigo-500 bg-opacity-20 pointer-events-none"
+              style={{ width: `${(currentTime / duration) * 100}%` }}
+            />
         </div>
       </div>
 
       {/* Controls */}
       <div className="flex items-center gap-4">
         {/* Play/Pause Button */}
-        <motion.button
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          onClick={togglePlay}
-          className="w-12 h-12 bg-blue-600 hover:bg-blue-700 text-white rounded-full flex items-center justify-center transition-colors"
-        >
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={togglePlay}
+            className="w-12 h-12 bg-indigo-600 hover:bg-indigo-700 text-white rounded-full flex items-center justify-center transition-colors"
+          >
           {isPlaying ? <Pause className="w-5 h-5" /> : <Play className="w-5 h-5 ml-1" />}
         </motion.button>
 
