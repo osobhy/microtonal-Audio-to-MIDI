@@ -220,7 +220,7 @@ useEffect(() => {
       const duration = note.end - note.start;
       playNote(frequency, note.start, duration, note.velocity);
     });
-  }, [midiData]);
+  }, [midiData, playNote]);
 
   useEffect(() => {
     if (isPlaying) {
