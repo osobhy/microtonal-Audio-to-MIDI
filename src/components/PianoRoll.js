@@ -210,7 +210,8 @@ useEffect(() => {
     }
   };
 
-  const playMidi = () => {
+  // Memoize the playMidi function to prevent it from changing on every render.
+  const playMidi = useCallback(() => {
     if (!midiData || !midiData.notes) return;
 
     const audioContext = createSynth();
@@ -219,7 +220,7 @@ useEffect(() => {
       const duration = note.end - note.start;
       playNote(frequency, note.start, duration, note.velocity);
     });
-  };
+  }, [midiData]);
 
   useEffect(() => {
     if (isPlaying) {
