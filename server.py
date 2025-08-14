@@ -11,9 +11,10 @@ import pretty_midi
 import numpy as np
 import subprocess
 import sys
+from flask_cors import CORS
 
 app = Flask(__name__)
-CORS(app)
+CORS(app, resources={r"/api/*": {"origins": os.environ.get("CORS_ORIGIN", "*").split(",")}})
 
 # Configuration
 UPLOAD_FOLDER = 'uploads'
@@ -162,4 +163,4 @@ def health_check():
     return jsonify({'status': 'healthy', 'message': 'Audio to MIDI converter is running'})
 
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=8000) 
+    app.run(debug=True, host='0.0.0.0', port=port) 
