@@ -15,6 +15,7 @@ const PianoRoll = ({ midiData, isConverting }) => {
   const audioContextRef = useRef(null);
   const playbackStartTimeRef = useRef(0);
   const animationFrameRef = useRef(null);
+  const isPlayingRef = useRef(false);
 
   // Piano key names - reduced range for less cramped view
   const noteNames = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
@@ -113,7 +114,19 @@ useEffect(() => {
   if (midiData.notes) {
     drawNotes(ctx, midiData.notes, canvas.width, canvas.height);
   }
-}, [midiData, dimensions, zoom, scrollX, isPlaying, currentTime, drawGrid, drawNotes]); 
+
+  // playback marker
+  if (midiData.notes && isPlaying) {
+    const timeScale = 150 * zoom;
+    const x = currentTime * timeScale - scrollX;
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.8)';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(x, 0);
+    ctx.lineTo(x, canvas.height);
+    ctx.stroke();
+  }
+}, [midiData, dimensions, zoom, scrollX, isPlaying, currentTime, drawGrid, drawNotes]);
   // MIDI Synthesizer
   const createSynth = () => {
     if (!audioContextRef.current) {
@@ -150,47 +163,53 @@ useEffect(() => {
   const midiNoteToFrequency = (note) => {
     return 440 * Math.pow(2, (note - 69) / 12);
   };
+  const updatePlayback = useCallback(() => {
+    if (!isPlayingRef.current || !audioContextRef.current) return;
+
+    const elapsed = audioContextRef.current.currentTime - playbackStartTimeRef.current;
+    setCurrentTime(elapsed);
+
+    if (elapsed < midiData.duration) {
+      animationFrameRef.current = requestAnimationFrame(updatePlayback);
+    } else {
+      isPlayingRef.current = false;
+      setIsPlaying(false);
+      setCurrentTime(0);
+    }
+  }, [midiData]);
 
   const startPlayback = () => {
     if (!midiData || !midiData.notes) return;
-    
+
+    const audioContext = createSynth();
+    audioContext.resume();
+    isPlayingRef.current = true;
     setIsPlaying(true);
     setCurrentTime(0);
-    const audioContext = createSynth();
     playbackStartTimeRef.current = audioContext.currentTime;
-    
+
     // Schedule all notes
     midiData.notes.forEach(note => {
       const frequency = midiNoteToFrequency(note.pitch);
       const duration = note.end - note.start;
       playNote(frequency, note.start, duration, note.velocity);
     });
-    
-    // Update playback position
-    const updatePlayback = () => {
-      if (!isPlaying) return;
-      
-      const elapsed = audioContext.currentTime - playbackStartTimeRef.current;
-      setCurrentTime(elapsed);
-      
-      if (elapsed < midiData.duration) {
-        animationFrameRef.current = requestAnimationFrame(updatePlayback);
-      } else {
-        setIsPlaying(false);
-        setCurrentTime(0);
-      }
-    };
-    
+
     updatePlayback();
   };
 
   const stopPlayback = () => {
+    isPlayingRef.current = false;
     setIsPlaying(false);
     setCurrentTime(0);
     if (animationFrameRef.current) {
       cancelAnimationFrame(animationFrameRef.current);
     }
+    if (audioContextRef.current) {
+      audioContextRef.current.suspend();
+    }
   };
+
 
   // Cleanup on unmount
   useEffect(() => {

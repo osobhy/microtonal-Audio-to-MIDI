@@ -1,17 +1,10 @@
-from flask import Flask, request, jsonify, send_file
+from flask import Flask, request, jsonify
 from flask_cors import CORS
 import os
-import tempfile
 import json
 import base64
-import io
 from werkzeug.utils import secure_filename
-import librosa
-import pretty_midi
-import numpy as np
-import subprocess
-import sys
-from flask_cors import CORS
+from script import convert_audio_file
 
 app = Flask(__name__)
 CORS(app, resources={r"/api/*": {"origins": os.environ.get("CORS_ORIGIN", "*").split(",")}})
@@ -28,12 +21,9 @@ def allowed_file(filename):
            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 def convert_audio_to_midi(audio_path, settings):
-    """Run the external microtonal engine to convert audio to MIDI."""
+    """Convert audio to MIDI using the internal microtonal engine."""
     midi_path = audio_path + '_converted.mid'
-    script_path = os.path.join(os.path.dirname(__file__), 'script.py')
-    cmd = [sys.executable, script_path, audio_path, midi_path]
-    subprocess.run(cmd, check=True)
-    midi = pretty_midi.PrettyMIDI(midi_path)
+    midi = convert_audio_file(audio_path, midi_path)
     return midi, midi_path
 
 @app.route('/api/convert', methods=['POST'])
