@@ -1,7 +1,8 @@
 # Microtonal Audio to MIDI Converter
 
-A first-of-its-kind tool to convert Microtonal Audio to MIDI. Enjoy :)
+A first-of-its-kind, robust tool with easy-to-use React front-end to convert Microtonal Audio to MIDI. I made this tool to aid research I was conducting on training generative AI audio models for microtonal, maqam Oud music. It should be highly useful for researchers in similar fields, as many analytical algorithms — such as segmentation through LBDM from MATLAB’s MIDIToolbox or complexity analyses — operate on symbolic MIDI data. While results are not 100% perfect, they are extremely close to accurate and, in my experience, fully sufficient for downstream MIDI analysis workflows.
 
+You can synthesize the resulting MIDI in any DAW that supports pitch bending. The tool processes the audio frame-by-frame, tracking pitch with high temporal resolution and quantizing it to the nearest quarter tone. If a new microtone is detected (say, a shift of roughly ±50 cents from the current note’s pitch), the current note is ended and a new note is started, preserving microtonal fidelity in the MIDI structure. Instead of representing all microtonal inflections as continuous bends, this creates distinct note events for quarter-tone changes while still encoding smaller pitch movements (like vibrato) as pitch bends within the same note. This should ensure that phrasing, ornamentation, expressive microtonal steps, etc are faithfully represented, making the MIDI suitable for both playback and symbolic analysis.
 
 ## (Current) Features
 -  **Drag & Drop Audio Upload**
@@ -76,5 +77,6 @@ Quantizes pitch to specific intervals. 0.5 = half semitone (quarter tones), whic
 ## License
 
 This project is open source and available under the MIT License.
+
 
 
