@@ -128,37 +128,57 @@ useEffect(() => {
   }
 }, [midiData, dimensions, zoom, scrollX, isPlaying, currentTime, drawGrid, drawNotes]);
   // MIDI Synthesizer
-  const createSynth = () => {
-    if (!audioContextRef.current) {
-      audioContextRef.current = new (window.AudioContext || window.webkitAudioContext)();
+  const createSynth = useCallback(() => {
+    try {
+      if (!window.AudioContext && !window.webkitAudioContext) {
+        console.error('Web Audio API not supported');
+        return null;
+      }
+      
+      if (!audioContextRef.current || audioContextRef.current.state === 'closed') {
+        audioContextRef.current = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      
+      return audioContextRef.current;
+    } catch (e) {
+      console.error('Failed to create audio context:', e);
+      return null;
     }
-    return audioContextRef.current;
-  };
+  }, []);
 
   // Wrap 'playNote' in its own useCallback hook to prevent dependency issues.
   const playNote = useCallback((frequency, startTime, duration, velocity = 100) => {
-    const audioContext = createSynth();
-    const gainNode = audioContext.createGain();
-    const oscillator = audioContext.createOscillator();
+    const audioContext = audioContextRef.current;
+    if (!audioContext) return;
     
-    // Connect nodes
-    oscillator.connect(gainNode);
-    gainNode.connect(audioContext.destination);
-    
-    // Set oscillator properties
-    oscillator.frequency.setValueAtTime(frequency, audioContext.currentTime);
-    oscillator.type = 'triangle'; // Warm, musical sound
-    
-    // Set envelope
-    const velocityGain = (velocity / 127) * volume;
-    gainNode.gain.setValueAtTime(0, audioContext.currentTime);
-    gainNode.gain.linearRampToValueAtTime(velocityGain, audioContext.currentTime + 0.01);
-    gainNode.gain.exponentialRampToValueAtTime(velocityGain * 0.3, audioContext.currentTime + duration);
-    gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + duration + 0.1);
-    
-    // Start and stop
-    oscillator.start(audioContext.currentTime + startTime);
-    oscillator.stop(audioContext.currentTime + startTime + duration + 0.1);
+    try {
+      const gainNode = audioContext.createGain();
+      const oscillator = audioContext.createOscillator();
+      
+      // Connect nodes
+      oscillator.connect(gainNode);
+      gainNode.connect(audioContext.destination);
+      
+      // Set oscillator properties
+      oscillator.type = 'triangle'; // Warm, musical sound
+      oscillator.frequency.setValueAtTime(frequency, startTime);
+      
+      // Set envelope with proper timing
+      const actualStartTime = startTime;
+      const velocityGain = (velocity / 127) * volume;
+      gainNode.gain.setValueAtTime(0, actualStartTime);
+      gainNode.gain.linearRampToValueAtTime(velocityGain, actualStartTime + 0.01);
+      gainNode.gain.exponentialRampToValueAtTime(velocityGain * 0.1, actualStartTime + duration - 0.05);
+      gainNode.gain.linearRampToValueAtTime(0.001, actualStartTime + duration);
+      
+      // Schedule playback
+      oscillator.start(actualStartTime);
+      oscillator.stop(actualStartTime + duration);
+      
+      return { oscillator, gainNode }; // Return nodes for cleanup
+    } catch (e) {
+      console.error('Failed to schedule note:', e);
+    }
   }, [volume]);
 
   const midiNoteToFrequency = (note) => {
@@ -179,54 +199,76 @@ useEffect(() => {
     }
   }, [midiData]);
 
-  const startPlayback = () => {
+  const startPlayback = async () => {
     if (!midiData || !midiData.notes) return;
 
     const audioContext = createSynth();
-    audioContext.resume();
-    isPlayingRef.current = true;
-    setIsPlaying(true);
-    setCurrentTime(0);
-    playbackStartTimeRef.current = audioContext.currentTime;
+    if (!audioContext) {
+      console.error('Could not create audio context');
+      return;
+    }
 
-    // Schedule all notes
-    midiData.notes.forEach(note => {
-      const frequency = midiNoteToFrequency(note.pitch);
-      const duration = note.end - note.start;
-      playNote(frequency, note.start, duration, note.velocity);
-    });
+    try {
+      // If suspended (e.g., by browser policy), resume
+      if (audioContext.state === 'suspended') {
+        await audioContext.resume();
+      }
 
-    updatePlayback();
+      // Reset state
+      stopPlayback(); // Clean up any previous playback
+      isPlayingRef.current = true;
+      setIsPlaying(true);
+      setCurrentTime(0);
+
+      // Get absolute start time and schedule all notes relative to it
+      const startTime = audioContext.currentTime + 0.1; // Small delay to ensure all notes are scheduled
+      playbackStartTimeRef.current = startTime;
+
+      // Schedule all notes
+      midiData.notes.forEach(note => {
+        const frequency = midiNoteToFrequency(note.pitch);
+        const duration = note.end - note.start;
+        playNote(frequency, startTime + note.start, duration, note.velocity);
+      });
+
+      updatePlayback();
+    } catch (e) {
+      console.error('Playback failed:', e);
+      stopPlayback();
+    }
   };
 
   const stopPlayback = () => {
     isPlayingRef.current = false;
     setIsPlaying(false);
     setCurrentTime(0);
+    
+    // Cancel animation frame if active
     if (animationFrameRef.current) {
       cancelAnimationFrame(animationFrameRef.current);
+      animationFrameRef.current = null;
     }
+
+    // Suspend audio context to save resources
     if (audioContextRef.current) {
-      audioContextRef.current.suspend();
+      // Only suspend if it's not already suspended
+      if (audioContextRef.current.state === 'running') {
+        audioContextRef.current.suspend().catch(console.error);
+      }
+
+      // Force cleanup by closing context and creating new one next time
+      audioContextRef.current.close().catch(console.error);
+      audioContextRef.current = null;
     }
   };
 
-  // Memoize the playMidi function to prevent it from changing on every render.
-  const playMidi = useCallback(() => {
-    if (!midiData || !midiData.notes) return;
-
-    midiData.notes.forEach((note) => {
-      const frequency = 440 * Math.pow(2, (note.pitch - 69) / 12); // Convert MIDI pitch to frequency
-      const duration = note.end - note.start;
-      playNote(frequency, note.start, duration, note.velocity);
-    });
-  }, [midiData, playNote]);
-
+  // Remove duplicate playMidi since we handle it in startPlayback
   useEffect(() => {
-    if (isPlaying) {
-      playMidi();
-    }
-  }, [isPlaying, playMidi]);
+    // Stop playback when component unmounts
+    return () => {
+      stopPlayback();
+    };
+  }, []);
   // Cleanup on unmount
   useEffect(() => {
     return () => {
