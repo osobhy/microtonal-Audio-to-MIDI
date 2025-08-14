@@ -135,7 +135,8 @@ useEffect(() => {
     return audioContextRef.current;
   };
 
-  const playNote = (frequency, startTime, duration, velocity = 100) => {
+  // Wrap 'playNote' in its own useCallback hook to prevent dependency issues.
+  const playNote = useCallback((frequency, startTime, duration, velocity = 100) => {
     const audioContext = createSynth();
     const gainNode = audioContext.createGain();
     const oscillator = audioContext.createOscillator();
@@ -158,7 +159,7 @@ useEffect(() => {
     // Start and stop
     oscillator.start(audioContext.currentTime + startTime);
     oscillator.stop(audioContext.currentTime + startTime + duration + 0.1);
-  };
+  }, [volume]);
 
   const midiNoteToFrequency = (note) => {
     return 440 * Math.pow(2, (note - 69) / 12);
