@@ -3,15 +3,12 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Music, 
   Download, 
-  Volume2, 
   Settings,
-  FileText,
   AlertCircle,
   Loader
 } from 'lucide-react';
 import AudioUploader from './components/AudioUploader';
 import PianoRoll from './components/PianoRoll';
-import AudioPlayer from './components/AudioPlayer';
 import SettingsPanel from './components/SettingsPanel';
 import './App.css';
 
@@ -19,7 +16,7 @@ function App() {
   const [audioFiles, setAudioFiles] = useState([]);
   const [midiData, setMidiData] = useState([]);
   const [isConverting, setIsConverting] = useState(false);
-  const [conversionProgress, setConversionProgress] = useState(0);
+  const [, setConversionProgress] = useState(0);
   const [error, setError] = useState(null);
   const [showSettings, setShowSettings] = useState(false);
   const [settings, setSettings] = useState({

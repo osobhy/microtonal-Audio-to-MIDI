@@ -11,7 +11,6 @@ const AudioPlayer = ({ audioFile }) => {
   const [waveform, setWaveform] = useState([]);
   
   const audioRef = useRef(null);
-  const canvasRef = useRef(null);
 
   useEffect(() => {
     if (!audioFile) return;

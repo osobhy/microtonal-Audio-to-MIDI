@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useState } from 'react';
+import React, { useRef, useEffect, useState, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { Music, Play, Pause, Volume2 } from 'lucide-react';
 
@@ -61,8 +61,7 @@ const PianoRoll = ({ midiData, isConverting }) => {
       drawNotes(ctx, midiData.notes, canvas.width, canvas.height);
     }
 
-  }, [midiData, dimensions, zoom, scrollX, isPlaying, currentTime]);
-
+}, [midiData, dimensions, zoom, scrollX, isPlaying, currentTime, drawGrid, drawNotes]);
   // MIDI Synthesizer
   const createSynth = () => {
     if (!audioContextRef.current) {
@@ -150,7 +149,7 @@ const PianoRoll = ({ midiData, isConverting }) => {
     };
   }, []);
 
-  const drawGrid = (ctx, width, height) => {
+const drawGrid = useCallback((ctx, width, height) => {
     const gridSize = 30 * zoom; // Larger grid spacing
     const keyHeight = height / pianoKeys.length;
 
@@ -176,9 +175,9 @@ const PianoRoll = ({ midiData, isConverting }) => {
     }
 
     // Removed note labels for cleaner look
-  };
+}, [zoom]);
 
-  const drawNotes = (ctx, notes, width, height) => {
+const drawNotes = useCallback((ctx, notes, width, height) => {
     const keyHeight = height / pianoKeys.length;
     const timeScale = 150 * zoom; // Increased time scale for better visibility
 
@@ -217,7 +216,7 @@ const PianoRoll = ({ midiData, isConverting }) => {
         ctx.strokeRect(x, y + keyHeight * 0.05, noteWidth, noteHeight);
       }
     });
-  };
+}, [zoom, scrollX, currentTime]);
 
   const formatTime = (time) => {
     const minutes = Math.floor(time / 60);
