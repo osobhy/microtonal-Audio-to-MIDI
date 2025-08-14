@@ -1,5 +1,5 @@
 {
-  "name": "audio-to-midi-converter",
+  "name": "microtonal-audio-to-midi-converter",
   "version": "1.0.0",
   "description": "A first-of-its-kind tool to convert Microtonal Audio to MIDI. Enjoy :)",
   "private": true,
