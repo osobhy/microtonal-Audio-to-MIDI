@@ -39,29 +39,81 @@ const PianoRoll = ({ midiData, isConverting }) => {
     window.addEventListener('resize', updateDimensions);
     return () => window.removeEventListener('resize', updateDimensions);
   }, []);
+  const drawGrid = useCallback((ctx, width, height) => {
+  const gridSize = 30 * zoom;
+  const keyHeight = height / pianoKeys.length;
 
-  useEffect(() => {
-    if (!canvasRef.current || !midiData || !dimensions.width) return;
+  // horizontal (keys)
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
+  ctx.lineWidth = 0.5;
+  for (let i = 0; i <= pianoKeys.length; i++) {
+    const y = i * keyHeight;
+    ctx.beginPath();
+    ctx.moveTo(0, y);
+    ctx.lineTo(width, y);
+    ctx.stroke();
+  }
 
-    const canvas = canvasRef.current;
-    const ctx = canvas.getContext('2d');
-    
-    // Set canvas size
-    canvas.width = dimensions.width;
-    canvas.height = dimensions.height;
+  // vertical (time)
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.07)';
+  ctx.lineWidth = 0.5;
+  for (let x = 0; x < width; x += gridSize) {
+    ctx.beginPath();
+    ctx.moveTo(x - scrollX, 0);
+    ctx.lineTo(x - scrollX, height);
+    ctx.stroke();
+  }
+}, [zoom, pianoKeys.length, scrollX]);
+const drawNotes = useCallback((ctx, notes, width, height) => {
+  const keyHeight = height / pianoKeys.length;
+  const timeScale = 150 * zoom;
 
-    // Clear canvas
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+  notes.forEach(note => {
+    const idx = note.pitch - 21;                // A0 = 21
+    if (idx < 0 || idx >= pianoKeys.length) return;
 
-    // Draw grid
-    drawGrid(ctx, canvas.width, canvas.height);
-    
-    // Draw notes if available
-    if (midiData.notes) {
-      drawNotes(ctx, midiData.notes, canvas.width, canvas.height);
+    const y = idx * keyHeight;
+    const x = note.start * timeScale - scrollX;
+    const w = (note.end - note.start) * timeScale;
+    const h = keyHeight * 0.9;
+
+    const isNow = isPlaying && currentTime >= note.start && currentTime <= note.end;
+
+    // fill
+    const grad = ctx.createLinearGradient(x, y, x + w, y);
+    if (isNow) {
+      grad.addColorStop(0, 'rgba(56, 189, 248, 0.9)');
+      grad.addColorStop(1, 'rgba(59, 130, 246, 0.9)');
+    } else {
+      grad.addColorStop(0, 'rgba(59, 130, 246, 0.6)');
+      grad.addColorStop(1, 'rgba(147, 51, 234, 0.6)');
     }
+    ctx.fillStyle = grad;
+    ctx.fillRect(x, y + keyHeight * 0.05, w, h);
 
-}, [midiData, dimensions, zoom, scrollX, isPlaying, currentTime, drawGrid, drawNotes]);
+    // border
+    ctx.strokeStyle = isNow ? 'rgba(255, 255, 255, 0.8)' : 'rgba(255, 255, 255, 0.4)';
+    ctx.lineWidth = isNow ? 2 : 1.5;
+    ctx.strokeRect(x, y + keyHeight * 0.05, w, h);
+  });
+}, [zoom, scrollX, currentTime, isPlaying, pianoKeys.length]); 
+
+useEffect(() => {
+  if (!canvasRef.current || !midiData || !dimensions.width) return;
+
+  const canvas = canvasRef.current;
+  const ctx = canvas.getContext('2d');
+
+  canvas.width = dimensions.width;
+  canvas.height = dimensions.height;
+
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  drawGrid(ctx, canvas.width, canvas.height);
+  if (midiData.notes) {
+    drawNotes(ctx, midiData.notes, canvas.width, canvas.height);
+  }
+}, [midiData, dimensions, zoom, scrollX, isPlaying, currentTime, drawGrid, drawNotes]); 
   // MIDI Synthesizer
   const createSynth = () => {
     if (!audioContextRef.current) {
@@ -149,74 +201,7 @@ const PianoRoll = ({ midiData, isConverting }) => {
     };
   }, []);
 
-const drawGrid = useCallback((ctx, width, height) => {
-    const gridSize = 30 * zoom; // Larger grid spacing
-    const keyHeight = height / pianoKeys.length;
 
-    // Draw horizontal lines (piano keys) - more subtle
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
-    ctx.lineWidth = 0.5;
-    
-    for (let i = 0; i <= pianoKeys.length; i++) {
-      const y = i * keyHeight;
-      ctx.beginPath();
-      ctx.moveTo(0, y);
-      ctx.lineTo(width, y);
-      ctx.stroke();
-    }
-
-    // Draw vertical lines (time grid) - more subtle
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
-    for (let x = 0; x <= width; x += gridSize) {
-      ctx.beginPath();
-      ctx.moveTo(x - scrollX, 0);
-      ctx.lineTo(x - scrollX, height);
-      ctx.stroke();
-    }
-
-    // Removed note labels for cleaner look
-}, [zoom]);
-
-const drawNotes = useCallback((ctx, notes, width, height) => {
-    const keyHeight = height / pianoKeys.length;
-    const timeScale = 150 * zoom; // Increased time scale for better visibility
-
-    notes.forEach(note => {
-      const noteIndex = note.pitch - 21; // MIDI note 21 is A0
-      if (noteIndex >= 0 && noteIndex < pianoKeys.length) {
-        const y = noteIndex * keyHeight;
-        const x = note.start * timeScale - scrollX;
-        const noteWidth = (note.end - note.start) * timeScale;
-        const noteHeight = keyHeight * 0.9; // Slightly larger notes
-
-        // Check if note is currently playing
-        const isCurrentlyPlaying = isPlaying && 
-          currentTime >= note.start && 
-          currentTime <= note.end;
-
-        // Draw note rectangle with better colors
-        const gradient = ctx.createLinearGradient(x, y, x + noteWidth, y);
-        if (isCurrentlyPlaying) {
-          // Highlight currently playing notes
-          gradient.addColorStop(0, '#fbbf24'); // Yellow
-          gradient.addColorStop(0.5, '#f59e0b'); // Orange
-          gradient.addColorStop(1, '#d97706'); // Dark orange
-        } else {
-            gradient.addColorStop(0, '#6366F1'); // Indigo
-            gradient.addColorStop(0.5, '#8b5cf6'); // Purple
-            gradient.addColorStop(1, '#a855f7'); // Lighter purple
-        }
-        
-        ctx.fillStyle = gradient;
-        ctx.fillRect(x, y + keyHeight * 0.05, noteWidth, noteHeight);
-        
-        // Draw note border with glow effect
-        ctx.strokeStyle = isCurrentlyPlaying ? 'rgba(255, 255, 255, 0.8)' : 'rgba(255, 255, 255, 0.4)';
-        ctx.lineWidth = isCurrentlyPlaying ? 2 : 1.5;
-        ctx.strokeRect(x, y + keyHeight * 0.05, noteWidth, noteHeight);
-      }
-    });
-}, [zoom, scrollX, currentTime]);
 
   const formatTime = (time) => {
     const minutes = Math.floor(time / 60);
