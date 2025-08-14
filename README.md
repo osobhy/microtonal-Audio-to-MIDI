@@ -13,6 +13,7 @@ You can synthesize the resulting MIDI in any DAW that supports pitch bending. Th
 -  **MIDI Download**
 
 ## Screenshots
+<img width="1067" height="623" alt="image" src="https://github.com/user-attachments/assets/86122d63-dbfb-4231-a421-83b87de1254a" />
 
 ## Installation
 This is a Python script written in 3.9 (was not tested on earlier versions of python). It requires librosa, numpy, pretty_midi, and flask. For the front-end, you will need React/Node.js.
@@ -77,6 +78,7 @@ Quantizes pitch to specific intervals. 0.5 = half semitone (quarter tones), whic
 ## License
 
 This project is open source and available under the MIT License.
+
 
 
 
