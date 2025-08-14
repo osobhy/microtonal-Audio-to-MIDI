@@ -225,7 +225,7 @@ useEffect(() => {
     if (isPlaying) {
       playMidi();
     }
-  }, [isPlaying]);
+  }, [isPlaying, playMidi]);
   // Cleanup on unmount
   useEffect(() => {
     return () => {
