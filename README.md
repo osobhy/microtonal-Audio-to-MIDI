@@ -23,12 +23,10 @@ This is a Python script written in 3.9 (was not tested on earlier versions of py
 - 
 ```bash
 npm install
-```
-```bash
 npm start
 ```
 
-The frontend will be available at `http://localhost:3000`
+The backend API will be available by default at port 3000 (`http://localhost:3000`)
 
 ### Backend Setup
 
@@ -42,7 +40,7 @@ pip install -r requirements.txt
 python server.py
 ```
 
-The backend API will be available at `http://localhost:5000`
+The backend API will be available by default at port 5000
 
 ## Usage
 
@@ -80,4 +78,5 @@ Quantizes pitch to specific intervals. 0.5 = half semitone (quarter tones), whic
 ## License
 
 This project is open source and available under the MIT License.
+
 
