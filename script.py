@@ -14,28 +14,32 @@ PITCH_BEND_RANGE = 2.0
 QUANTIZATION_STEP = 0.5  # semitones
 
 # Split when a pitch slide exceeds this and persists (not vibrato)
-SLIDE_SPLIT_SEMITONES = 0.5
+SLIDE_SPLIT_SEMITONES = 0.3
 SLIDE_HOLD_FRAMES = 3  # frames it must persist before splitting
 
 # Tremolo: treat onset peaks as new notes if pitch stays near the base
-TREM_PITCH_TOL = 0.2  # semitones allowable deviation for “same note” tremolo
+TREM_PITCH_TOL = 0.3  # semitones allowable deviation for “same note” tremolo
 TREM_MIN_GAP_S = 0.035  # minimum time between tremolo notes
 
 # Amplitude gating & durations
-GATE_ON = 0.08   # normalized RMS to start a note
-GATE_OFF = 0.05  # normalized RMS to end a note (hysteresis)
+GATE_ON = 0.05   # normalized RMS to start a note
+GATE_OFF = 0.035  # normalized RMS to end a note (hysteresis)
 RELEASE_FRAMES = 5
-MIN_NOTE_DUR_S = 0.05
-MIN_GAP_S = 0.02
-COOLDOWN_FRAMES = 2  # ignore new onsets for a couple frames after starting
+MIN_NOTE_DUR_S = 0.03
+MIN_GAP_S = 0.01
+COOLDOWN_FRAMES = 1  # ignore new onsets for a couple frames after starting
 
 # Pitch smoothing & bend thinning
-PITCH_MEDIAN_WIN = 5             # frames for median smooth on MIDI float pitch
+PITCH_MEDIAN_WIN = 3            # frames for median smooth on MIDI float pitch
 BEND_SEMITONE_STEP = 0.03        # only emit bend if change >= this (≈3 cents)
 BEND_MAX_FRAME_SKIP = 3          # also emit at least every N frames
 
 # pYIN / STFT
-FRAME_LENGTH = 2048
+FRAME_LENGTH = 1024
+PYIN_CENTER = False
+LOAD_DTYPE = np.float32
+
+# Increased hop length reduces the number of analysis frames (much faster). Tweak for quality/speed tradeoff.
 HOP_LENGTH = 256
 FMIN = librosa.note_to_hz("C2")
 FMAX = librosa.note_to_hz("C7")
@@ -52,6 +56,7 @@ def hz_to_midi_float(hz):
 
 def nanmedian_smooth(x, win):
     """Simple NaN-aware median filter."""
+    # Keep for backward compatibility but prefer SciPy-based faster path used later.
     if win <= 1:
         return x.copy()
     n = len(x)
@@ -79,6 +84,20 @@ def velocity_from_rms(rms_val):
     # Map [0..1] -> [28..112], curved a bit
     v = int(28 + (rms_val ** 0.6) * (112 - 28))
     return int(np.clip(v, 1, 127))
+
+# Fast energy-based onset finder (no extra STFT)
+def energy_onsets_from_rms(rms_n, min_prominence=0.02, min_distance_frames=2):
+    try:
+        from scipy.signal import find_peaks
+        # onset proxy: positive derivative of the RMS envelope
+        d = np.maximum(0.0, np.diff(rms_n, prepend=rms_n[0]))
+        peaks, _ = find_peaks(d, prominence=min_prominence, distance=min_distance_frames)
+        return peaks.astype(int)
+    except Exception:
+        # fallback: simple threshold crossings
+        thr = np.percentile(rms_n, 75)  # adaptive
+        rising = (rms_n[1:] >= thr) & (rms_n[:-1] < thr)
+        return np.nonzero(np.concatenate([[False], rising]))[0]
 
 def emit_pitch_bend_events(instrument, times, midi_pitch_float, base_semitone_int,
                            idx_start, idx_end):
@@ -147,31 +166,52 @@ def convert_audio_file(audio_path, midi_output):
     # =========================
     # LOAD + FEATURES
     # =========================
-    y, sr = librosa.load(audio_path, sr=None, mono=True)
+    TARGET_SR = 16000
+    y, sr = librosa.load(audio_path, sr=TARGET_SR, mono=True, dtype=LOAD_DTYPE)
 
     # pYIN pitch (float MIDI numbers)
     f0_hz, voiced_flag, _ = librosa.pyin(
-        y, fmin=FMIN, fmax=FMAX, sr=sr, frame_length=FRAME_LENGTH, hop_length=HOP_LENGTH
+        y, fmin=FMIN, fmax=FMAX, sr=sr,
+        frame_length=FRAME_LENGTH, hop_length=HOP_LENGTH, center=PYIN_CENTER
     )
-    times = librosa.times_like(f0_hz, sr=sr, hop_length=HOP_LENGTH)
+
+    frame_dt = HOP_LENGTH / sr
+    times = np.arange(len(f0_hz), dtype=np.float32) * frame_dt
 
     # Convert to MIDI float, smooth, and handle NaNs
-    midi_pitch = np.full_like(f0_hz, np.nan, dtype=float)
-    valid = (~np.isnan(f0_hz)) & (voiced_flag.astype(bool))
+    midi_pitch = np.full(f0_hz.shape, np.nan, dtype=np.float32)
+    voiced_flag = voiced_flag.astype(bool, copy=False)
+    valid = (~np.isnan(f0_hz)) & voiced_flag
     midi_pitch[valid] = hz_to_midi_float(f0_hz[valid])
 
     # Median smoothing on MIDI float to tame jitter (preserve slides)
-    midi_pitch_smooth = nanmedian_smooth(midi_pitch, PITCH_MEDIAN_WIN)
+    # Use a faster SciPy median filter: interpolate missing frames then apply medfilt.
+    try:
+        from scipy.signal import medfilt
+        # Interpolate NaNs for smoothing
+        midi_interp = midi_pitch.copy()
+        valid_idx = np.where(~np.isnan(midi_pitch))[0]
+        if valid_idx.size > 1:
+            nan_idx = np.where(np.isnan(midi_pitch))[0]
+            midi_interp[nan_idx] = np.interp(nan_idx, valid_idx, midi_pitch[valid_idx])
+        # Ensure odd kernel size
+        win = PITCH_MEDIAN_WIN if (PITCH_MEDIAN_WIN % 2 == 1) else (PITCH_MEDIAN_WIN + 1)
+        if win < 1:
+            win = 1
+        midi_smoothed = medfilt(midi_interp, kernel_size=win).astype(np.float32, copy=False)
+        midi_pitch_smooth = midi_smoothed
+        # restore NaNs for unvoiced frames
+        midi_pitch_smooth[~valid] = np.nan
+    except Exception:
+        # Fallback to original slow method if SciPy not available
+        midi_pitch_smooth = nanmedian_smooth(midi_pitch, PITCH_MEDIAN_WIN)
 
     # RMS envelope & onset strength
     rms = librosa.feature.rms(y=y, frame_length=FRAME_LENGTH, hop_length=HOP_LENGTH).flatten()
     rms_n = normalize_rms(rms)
 
-    onset_env = librosa.onset.onset_strength(y=y, sr=sr, hop_length=HOP_LENGTH)
-    onset_frames = librosa.onset.onset_detect(onset_envelope=onset_env, sr=sr,
-                                              hop_length=HOP_LENGTH, backtrack=False,
-                                              pre_max=3, post_max=3, pre_avg=3, post_avg=3,
-                                              delta=0.1, wait=0)
+    min_dist = max(1, int(round(0.02 / (HOP_LENGTH / sr))))  # ~20 ms spacing
+    onset_frames = energy_onsets_from_rms(rms_n, min_prominence=0.02, min_distance_frames=min_dist)
     onset_set = set(int(f) for f in onset_frames)
 
     # =========================
@@ -228,13 +268,13 @@ def convert_audio_file(audio_path, midi_output):
             pitch_dev = np.nan if base_ref_pitch is None or np.isnan(midi_pitch_smooth[i]) else (midi_pitch_smooth[i] - base_ref_pitch)
 
             tremolo_split = False
-            if is_onset and (pitch_dev is not np.nan):
+            if is_onset and (not np.isnan(pitch_dev)):
                 if abs(pitch_dev) <= TREM_PITCH_TOL and (time_at(i) - time_at(idx_start)) >= MIN_NOTE_DUR_S:
                     tremolo_split = True
 
             # Slide split: sustained deviation >= threshold
             slide_split = False
-            if (pitch_dev is not np.nan) and (abs(pitch_dev) >= SLIDE_SPLIT_SEMITONES) and is_voiced(i):
+            if (not np.isnan(pitch_dev)) and (abs(pitch_dev) >= SLIDE_SPLIT_SEMITONES) and is_voiced(i):
                 slide_count += 1
                 if slide_count >= SLIDE_HOLD_FRAMES:
                     slide_split = True
