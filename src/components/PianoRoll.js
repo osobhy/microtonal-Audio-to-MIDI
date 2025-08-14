@@ -215,7 +215,6 @@ useEffect(() => {
   const playMidi = useCallback(() => {
     if (!midiData || !midiData.notes) return;
 
-    const audioContext = createSynth();
     midiData.notes.forEach((note) => {
       const frequency = 440 * Math.pow(2, (note.pitch - 69) / 12); // Convert MIDI pitch to frequency
       const duration = note.end - note.start;
