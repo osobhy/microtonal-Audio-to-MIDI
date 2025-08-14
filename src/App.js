@@ -12,6 +12,9 @@ import PianoRoll from './components/PianoRoll';
 import SettingsPanel from './components/SettingsPanel';
 import './App.css';
 
+export const API_BASE =
+  process.env.REACT_APP_API_BASE_URL || "http://localhost:8000";
+
 function App() {
   const [audioFiles, setAudioFiles] = useState([]);
   const [midiData, setMidiData] = useState([]);
@@ -50,10 +53,8 @@ function App() {
         formData.append('audio', file);
         formData.append('settings', JSON.stringify(settings));
 
-        const response = await fetch('/api/convert', {
-          method: 'POST',
-          body: formData,
-        });
+        const response = await fetch(`${API_BASE}/api/convert`, { method: 'POST', body: formData })
+
 
         if (!response.ok) {
           throw new Error('Conversion failed');
