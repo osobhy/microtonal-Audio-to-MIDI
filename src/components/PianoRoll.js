@@ -210,7 +210,22 @@ useEffect(() => {
     }
   };
 
+  const playMidi = () => {
+    if (!midiData || !midiData.notes) return;
 
+    const audioContext = createSynth();
+    midiData.notes.forEach((note) => {
+      const frequency = 440 * Math.pow(2, (note.pitch - 69) / 12); // Convert MIDI pitch to frequency
+      const duration = note.end - note.start;
+      playNote(frequency, note.start, duration, note.velocity);
+    });
+  };
+
+  useEffect(() => {
+    if (isPlaying) {
+      playMidi();
+    }
+  }, [isPlaying]);
   // Cleanup on unmount
   useEffect(() => {
     return () => {
@@ -244,6 +259,15 @@ useEffect(() => {
     setZoom(2.5); // Reset to default zoom
     setScrollX(0);
   };
+
+  useEffect(() => {
+    const handleWheel = (event) => {
+      setZoom((prevZoom) => Math.max(0.5, Math.min(10, prevZoom - event.deltaY * 0.01)));
+    };
+
+    window.addEventListener('wheel', handleWheel);
+    return () => window.removeEventListener('wheel', handleWheel);
+  }, []);
 
   return (
     <div className="space-y-4">
@@ -359,4 +383,4 @@ useEffect(() => {
   );
 };
 
-export default PianoRoll; 
+export default PianoRoll;

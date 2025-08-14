@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Music, 
@@ -27,6 +27,10 @@ function App() {
     driftThreshold: 0.5,
     quantizationStep: 0.5
   });
+
+  useEffect(() => {
+    document.title = 'Microtonal Audio to MIDI Converter';
+  }, []);
 
   const handleFilesUpload = (files) => {
     setAudioFiles(files);
@@ -234,4 +238,4 @@ function App() {
   );
 }
 
-export default App; 
+export default App;
