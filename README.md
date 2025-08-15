@@ -1,4 +1,6 @@
 # Microtonal Audio to MIDI Converter
+# **Netlify link: https://microtonal.netlify.app/**
+
 
 A first-of-its-kind, robust tool with easy-to-use React front-end to convert Microtonal Audio to MIDI. I made this tool to aid research I was conducting on training generative AI audio models for microtonal, maqam Oud music. It should be highly useful for researchers in similar fields, as many analytical algorithms — such as segmentation through LBDM from MATLAB’s MIDIToolbox or complexity analyses — operate on symbolic MIDI data. While results are not 100% perfect, they are extremely close to accurate and, in my experience, fully sufficient for downstream MIDI analysis workflows.
 
@@ -78,6 +80,7 @@ Quantizes pitch to specific intervals. 0.5 = half semitone (quarter tones), whic
 ## License
 
 This project is open source and available under the MIT License.
+
 
 
 
