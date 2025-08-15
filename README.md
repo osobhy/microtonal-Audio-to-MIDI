@@ -75,14 +75,3 @@ Quantizes pitch to specific intervals. 0.5 = half semitone (quarter tones), whic
 4. Detect note boundaries using drift threshold
 5. Generate MIDI notes and pitch bend messages
 6. Export as MIDI file
-
-
-## License
-
-This project is open source and available under the MIT License.
-
-
-
-
-
-
