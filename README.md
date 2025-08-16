@@ -14,7 +14,6 @@ This is a Python script written in 3.9 (was not tested on earlier versions of py
 
 ### Frontend Setup
 - Install and run the front-end environment
-- 
 ```bash
 npm install
 npm start
@@ -36,13 +35,16 @@ python server.py
 
 The backend API will be available by default at port 5000
 
-## Usage
-
-1. Drag and drop an audio file or click to browse
-2. Click "Advanced" to customize conversion parameters as you wish (the default suffice for microtonal Arabic music, but I thought making the tool more modular would aid with other styles of music as well.)
-3. Click "Convert to MIDI" to start the conversion process
-4. Watch the piano roll visualization update in real-time
-5. Click "Download MIDI" to save the converted file
+## Use without React
+To use without setting up a fancy front-end, simply call script.py with the input file and output file. First, clone the project, cd into the project directory, install the dependencies
+```bash
+pip install librosa numpy pretty_midi
+```
+Then call
+```bash
+python script.py 30.wav 30.mid
+```
+where 30.wav is an audio file in the samme directory. You are going to get an output of 30.mid in the same directory. 
 
 ## Settings
 
@@ -56,4 +58,5 @@ The backend API will be available by default at port 5000
 
 - `POST /api/convert` to convert audio to MIDI
 - `GET /api/health` health check
+
 
