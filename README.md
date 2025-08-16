@@ -44,18 +44,16 @@ The backend API will be available by default at port 5000
 4. Watch the piano roll visualization update in real-time
 5. Click "Download MIDI" to save the converted file
 
-## Settings Explained
+## Settings
 
-### Pitch Bend Range
-This controls the range of pitch bend message. Must match your synthesizer's pitch bend range if you're planinng to synthesize the midi into audio. Ranges 1-12 semitones
+- Pitch bend range controls the range of pitch bend message. Must match your synthesizer's pitch bend range if you're planinng to synthesize the midi into audio. Ranges 1-12 semitones
 
-### Drift Threshold
-Determines when to split into new notes. Higher values generally mean fewer note splits. Ranges 0.1-2.0
+- Drift threshold determines when to split into new notes. Higher values generally mean fewer note splits. Ranges 0.1-2.0
 
-### Quantization Step
-Quantizes pitch to specific intervals. 0.5 = half semitone (quarter tones), which is defult. Ranges 0.1-1.0
+- Quantization step quantizes pitch to specific intervals. 0.5 = half semitone (quarter tones), which is defult. Ranges 0.1-1.0
 
 ## API Endpoints
 
 - `POST /api/convert` to convert audio to MIDI
 - `GET /api/health` health check
+
