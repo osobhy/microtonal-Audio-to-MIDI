@@ -1,6 +1,6 @@
 # Microtonal Audio to MIDI Converter
 # **Try now! Netlify link: https://microtonal.netlify.app/**
-
+# ** Public launch on Reddit: https://www.reddit.com/r/FL_Studio/comments/1mr8e4h/i_made_a_free_firstofitskind_tool_to_convert/ https://www.reddit.com/r/audioengineering/comments/1mr8coy/i_made_a_free_firstofitskind_tool_to_convert/ **
 
 A first-of-its-kind, robust tool with easy-to-use React front-end to convert Microtonal Audio to MIDI. I made this tool to aid research I was conducting on training generative AI audio models for microtonal, maqam Oud music. It should be highly useful for researchers in similar fields, as many analytical algorithms — such as segmentation through LBDM from MATLAB’s MIDIToolbox or complexity analyses — operate on symbolic MIDI data. While results are not 100% perfect, they are extremely close to accurate and, in my experience, fully sufficient for downstream MIDI analysis workflows.
 
@@ -58,5 +58,6 @@ where 30.wav is an audio file in the samme directory. You are going to get an ou
 
 - `POST /api/convert` to convert audio to MIDI
 - `GET /api/health` health check
+
 
 
