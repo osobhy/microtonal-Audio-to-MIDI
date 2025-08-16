@@ -59,12 +59,3 @@ Quantizes pitch to specific intervals. 0.5 = half semitone (quarter tones), whic
 
 - `POST /api/convert` to convert audio to MIDI
 - `GET /api/health` health check
-
-### Audio Processing Pipeline
-1. Load audio file with Librosa
-2. Extract fundamental frequency (F0) using pYIN algorithm
-3. Quantize pitches based on settings
-4. Detect note boundaries using drift threshold
-5. Generate MIDI notes and pitch bend messages
-6. Export as MIDI file
-
