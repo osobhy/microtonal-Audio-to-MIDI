@@ -6,14 +6,6 @@ A first-of-its-kind, robust tool with easy-to-use React front-end to convert Mic
 
 You can synthesize the resulting MIDI in any DAW that supports pitch bending. The tool processes the audio frame-by-frame, tracking pitch with high temporal resolution and quantizing it to the nearest quarter tone. If a new microtone is detected (say, a shift of roughly ±50 cents from the current note’s pitch), the current note is ended and a new note is started, preserving microtonal fidelity in the MIDI structure. Instead of representing all microtonal inflections as continuous bends, this creates distinct note events for quarter-tone changes while still encoding smaller pitch movements (like vibrato) as pitch bends within the same note. This should ensure that phrasing, ornamentation, expressive microtonal steps, etc are faithfully represented, making the MIDI suitable for both playback and symbolic analysis.
 
-## (Current) Features
--  **Drag & Drop Audio Upload**
--  **Interactive Piano Roll**
--  **Advanced Settings** (pitch bend range, drift threshold, and quantization -- more to come.)
--  **Audio Preview** 
--  **Real-time Conversion**
--  **MIDI Download**
-
 ## Screenshots
 <img width="1067" height="623" alt="image" src="https://github.com/user-attachments/assets/86122d63-dbfb-4231-a421-83b87de1254a" />
 
@@ -75,3 +67,4 @@ Quantizes pitch to specific intervals. 0.5 = half semitone (quarter tones), whic
 4. Detect note boundaries using drift threshold
 5. Generate MIDI notes and pitch bend messages
 6. Export as MIDI file
+
