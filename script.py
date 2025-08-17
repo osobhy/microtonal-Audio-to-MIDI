@@ -277,7 +277,7 @@ def convert_audio_file(audio_path, midi_output, settings=None):
     # WRITE MIDI
     midi.instruments.append(instrument)
     midi.write(midi_output)
-    print(f"✅ Saved microtonal MIDI to {midi_output}  |  notes={len(instrument.notes)}  bends={len(instrument.pitch_bends)}")
+    print(f"Saved microtonal MIDI to {midi_output}  |  notes={len(instrument.notes)}  bends={len(instrument.pitch_bends)}")
     return midi
 
 
@@ -286,3 +286,4 @@ if __name__ == "__main__":
         print("Usage: script.py <input_audio> <output_midi>")
         sys.exit(1)
     convert_audio_file(sys.argv[1], sys.argv[2])
+
